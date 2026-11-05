@@ -1,0 +1,27 @@
+{
+  "languages": [
+    {
+      "code": "arz",
+      "slug": "arabic-egyptian",
+      "name": "Arabic",
+      "variety": "Egyptian",
+      "nativeName": "مصري",
+      "script": "arabic",
+      "direction": "rtl",
+      "status": "available",
+      "fonts": { "ui": "arabic", "transcript": "naskh" },
+      "transcriptLayers": ["script", "tashkeel", "transliteration", "english"]
+    },
+    {
+      "code": "es",
+      "slug": "spanish",
+      "name": "Spanish",
+      "nativeName": "Español",
+      "script": "latin",
+      "direction": "ltr",
+      "status": "coming-soon",
+      "fonts": { "ui": "sans", "transcript": "sans" },
+      "transcriptLayers": ["script", "english"]
+    }
+  ]
+}

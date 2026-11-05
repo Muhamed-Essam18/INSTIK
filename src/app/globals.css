@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-cream: #fff4e6;
+  --color-paper: #ffffff;
+  --color-ink: #1b2340;
+  --color-slate: #5b6478;
+  --color-coral: #ff6a4d;
+  --color-coral-text: #c2412a;
+  --color-coral-tint: #ffe1d6;
+  --color-teal: #19a38f;
+  --color-teal-text: #0f7566;
+  --color-sun: #ffc83d;
+  --color-hairline: #1b23401f;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-display: var(--nf-nunito), Nunito, ui-rounded, system-ui, sans-serif;
+  --font-sans: var(--nf-inter), Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-arabic: var(--nf-plex-arabic), "IBM Plex Sans Arabic", Tahoma, sans-serif;
+  --font-naskh: var(--nf-naskh), "Noto Naskh Arabic", "Times New Roman", serif;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --spacing-space-1: 4px;
+  --spacing-space-2: 8px;
+  --spacing-space-3: 12px;
+  --spacing-space-4: 16px;
+  --spacing-space-6: 24px;
+  --spacing-space-8: 32px;
+  --spacing-space-12: 48px;
+  --spacing-space-16: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px #1b234014, 0 2px 8px #1b23400f;
+  --shadow-md: 0 10px 28px -8px #1b234033;
+
+  --text-display: 48px;
+  --text-display--line-height: 56px;
+  --text-display--font-weight: 800;
+  --text-display--letter-spacing: -0.01em;
+  --text-title: 32px;
+  --text-title--line-height: 40px;
+  --text-title--font-weight: 800;
+  --text-heading: 22px;
+  --text-heading--line-height: 30px;
+  --text-heading--font-weight: 700;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+  --text-body: 16px;
+  --text-body--line-height: 24px;
+  --text-body--font-weight: 400;
+  --text-label: 14px;
+  --text-label--line-height: 20px;
+  --text-label--font-weight: 600;
+  --text-caption: 13px;
+  --text-caption--line-height: 18px;
+  --text-caption--font-weight: 500;
+  --text-translit: 15px;
+  --text-translit--line-height: 22px;
+  --text-translit--font-weight: 400;
+  --text-arabic-ui: 18px;
+  --text-arabic-ui--line-height: 30px;
+  --text-arabic-ui--font-weight: 500;
+  --text-transcript: 26px;
+  --text-transcript--line-height: 48px;
+  --text-transcript--font-weight: 400;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+@layer base {
+  a {
+    color: var(--color-coral-text);
+  }
+
+  a:hover {
+    color: var(--color-ink);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
