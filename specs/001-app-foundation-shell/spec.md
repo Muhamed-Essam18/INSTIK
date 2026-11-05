@@ -8,6 +8,12 @@
 
 **Input**: User description: "Build the foundation of the Instik website that every other screen sits on: a shared page shell (header with lowercase instik wordmark, main navigation Library / Roadmap / Hosts, Hours pill placeholder, account button, simple footer with 'Say it: in-STICK'); the Instik look applied everywhere; languages defined as data (Egyptian Arabic available, Spanish 'coming soon'), with language pages under /learn/<language-slug>; Arabic displaying correctly inside the English interface; empty placeholder pages for every MVP screen so navigation works end to end. Out of scope: real content, accounts, video playback, hours tracking and payments."
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: When a visitor selects "Hosts" in the main navigation, which page should open? → A: The host screen placeholder at `/learn/<language-slug>/hosts`; individual host URLs (`/hosts/<host-slug>`) come in the content spec. No separate hosts index page.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Move through every screen with a consistent shell (Priority: P1)
@@ -86,7 +92,7 @@ Wherever a block of target-language text appears, Arabic displays right-to-left 
 ### Edge Cases
 
 - A visitor opens a URL that matches no page: they see a friendly not-found page inside the shell.
-- A language slug differs only in letter case or has a trailing slash: it resolves to the same page or redirects to the canonical URL.
+- A language slug is written in a different letter case (for example `/learn/ARABIC-EGYPTIAN`): slugs are lowercase only, so it shows the not-found page. A trailing slash leads to the same page without it.
 - A very long Arabic string or an English string in a narrow layout: text wraps without overflow or horizontal scroll.
 - The header at narrow widths with long labels: navigation, Hours pill and account button wrap to a second row without overlap.
 - The Arabic or brand fonts fail to load: text falls back to a readable system font and the layout stays usable.
@@ -101,17 +107,17 @@ Wherever a block of target-language text appears, Arabic displays right-to-left 
 
 - **FR-001**: Every page in the product MUST be wrapped in one shared shell with a header and a footer.
 - **FR-002**: The header MUST show the lowercase "instik" wordmark linking to the landing page, a main navigation with Library, Roadmap and Hosts, an Hours pill placeholder, and an account button, matching the approved designs.
-- **FR-003**: The navigation MUST mark the current section as current, both visually and for assistive technology.
-- **FR-004**: The Hours pill MUST be a non-functional placeholder showing no real tracked time and MUST NOT imply real data; it links to the Roadmap page.
+- **FR-003**: The navigation MUST mark the current section as current, both visually and for assistive technology, using an exact section match: Library on the library page, Roadmap on the roadmap page, Hosts on the hosts page. The player page, the "Done for today" page and all language-independent pages mark no item.
+- **FR-004**: The Hours pill MUST show the label "Hours" with a dash in place of a value, MUST NOT show any number or time, and MUST link to the Roadmap page.
 - **FR-005**: The account button MUST be present as a placeholder and MUST NOT start any sign-in or account flow in this spec.
 - **FR-006**: The footer MUST show the "instik" name and "Say it: in-STICK", and may include simple links to About, Hosts, Pricing and Privacy as in the approved designs. Links to pages that do not exist yet MUST NOT lead to errors.
-- **FR-007**: The landing page and the "Done for today" page MAY use the layouts shown in the approved designs where they differ from the standard header, but they MUST remain inside the shared shell system.
+- **FR-007**: In this spec the landing page and the "Done for today" page use the standard header and footer. The different header layouts shown for them in the approved designs are built with those screens, and they MUST remain inside the shared shell system.
 - **FR-008**: The shell MUST work at phone and desktop widths with no horizontal scrolling.
 
 **Pages and routes**
 
 - **FR-009**: The product MUST provide an empty placeholder page for each MVP screen: landing, onboarding, library, player, done for today, roadmap, host and pricing. Each shows a screen heading and a short "coming soon" note.
-- **FR-010**: Language-specific screens (library, player, done for today, roadmap, host) MUST live under `/learn/<language-slug>`. Landing, onboarding and pricing are language-independent.
+- **FR-010**: Language-specific screens (library, player, done for today, roadmap, host) MUST live under `/learn/<language-slug>`. Landing, onboarding and pricing are language-independent. The Hosts navigation item opens the host screen placeholder at `/learn/<language-slug>/hosts`; there is no separate hosts index page and no per-host URL in this spec.
 - **FR-011**: From any page, a visitor MUST be able to reach every other MVP screen through navigation or in-page links, so the full set can be visited without typing a URL.
 - **FR-012**: Unknown URLs and unknown language slugs MUST show a friendly not-found page in the shell with a way back.
 - **FR-013**: Every page MUST have a unique, meaningful page title and exactly one top-level heading.
@@ -127,11 +133,11 @@ Wherever a block of target-language text appears, Arabic displays right-to-left 
 
 **Languages as data**
 
-- **FR-020**: Languages MUST be defined in a single data file. Each entry has at least a code, display name, variety, URL slug, script, text direction, fonts, availability status (available or coming soon), and the transcript layers it uses.
+- **FR-020**: Languages MUST be defined in a single data file. Each entry has a code, display name, native name (the name in the language's own script), URL slug, script, text direction, fonts, availability status (available or coming soon) and the transcript layers it uses, plus an optional variety (for example Egyptian).
 - **FR-021**: The data MUST list Egyptian Arabic as available (slug `arabic-egyptian`, right-to-left, language code `arz`) and Spanish as coming soon.
 - **FR-022**: The language data MUST be validated at build time. Missing required fields, duplicate slugs, invalid directions and an empty set of available languages MUST fail the build with a clear message.
 - **FR-023**: Adding a language MUST require only a data change, not a change to page or component code.
-- **FR-024**: Language pages MUST resolve the language from the URL slug against the data. "Coming soon" languages show a friendly notice instead of learning pages.
+- **FR-024**: Language pages MUST resolve the language from the URL slug against the data. Slugs are lowercase only; a slug in any other case is treated as unknown. "Coming soon" languages show a friendly notice instead of learning pages.
 
 **Target-language text**
 
@@ -162,9 +168,9 @@ Wherever a block of target-language text appears, Arabic displays right-to-left 
 ## Assumptions
 
 - The approved screens in `docs/design/` are the visual reference for the header, footer and look. Placeholder content in them (names, titles, "12h 40m") is not final.
-- The Hours pill shows neutral placeholder text (for example "Hours 0h") and links to the Roadmap, with no tracked time, since hours tracking is out of scope.
+- The Hours pill shows the label "Hours" with a dash (—) instead of a value and links to the Roadmap, since hours tracking is out of scope.
 - The account button shows a neutral placeholder and does nothing yet. Sign-in comes in a later spec.
-- Language-specific screens live under `/learn/<language-slug>`: library at the language root, then player, done for today, roadmap and hosts beneath it. Exact sub-paths are decided in planning. Landing, onboarding and pricing sit outside the language path.
+- Language-specific screens live under `/learn/<language-slug>`: library at the language root, then player, done for today, roadmap and hosts (`/learn/<language-slug>/hosts`) beneath it. The remaining sub-paths are decided in planning. Landing, onboarding and pricing sit outside the language path.
 - Navigation items Library, Roadmap and Hosts point at the current language, which defaults to Egyptian Arabic, the only available language, until language selection exists.
 - Spanish has no learning pages; its learning URL shows a "coming soon" notice. Joining its waitlist is out of scope here and belongs to a later spec.
 - Real content, accounts and sign-in, video playback, hours tracking and payments are out of scope. Placeholder pages show only a heading and a short "coming soon" note.
