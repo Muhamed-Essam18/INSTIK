@@ -20,6 +20,15 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+
+## Adding content
+
+Videos, transcripts, glossaries and hosts are plain files under `content/<language-slug>/`
+(for example `content/arabic-egyptian/videos/at-the-cafe.json`). Every file is checked when the
+app is built, and invalid content fails the build with a message naming the file. The current
+Egyptian Arabic files are marked `sample`. See
+`specs/002-content-and-library/contracts/content-files.md` for the formats and an example of each.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

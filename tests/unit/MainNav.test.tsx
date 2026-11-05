@@ -33,8 +33,12 @@ describe("MainNav", () => {
     expect(currentItems("/learn/arabic-egyptian/hosts")).toEqual(["Hosts"]);
   });
 
+  it("marks Hosts on any host page", () => {
+    expect(currentItems("/learn/arabic-egyptian/hosts/salma")).toEqual(["Hosts"]);
+  });
+
   it("marks nothing on watch, done and language-independent paths", () => {
-    for (const path of ["/learn/arabic-egyptian/watch", "/learn/arabic-egyptian/done", "/pricing", "/"]) {
+    for (const path of ["/learn/arabic-egyptian/watch", "/learn/arabic-egyptian/watch/at-the-cafe","/learn/arabic-egyptian/done", "/pricing", "/"]) {
       expect(currentItems(path)).toEqual([]);
       cleanup();
     }

@@ -1,0 +1,12 @@
+{
+  "sample": true,
+  "title": "Buying bread at the bakery",
+  "titleArabic": "شِرَاء العِيش مِن الفُرْن",
+  "slug": "buying-bread-at-the-bakery",
+  "stage": "follow-it",
+  "topic": "food",
+  "host": "omar",
+  "durationSeconds": 420,
+  "access": "full",
+  "playbackId": "sample-playback-id-buying-bread-at-the-bakery"
+}

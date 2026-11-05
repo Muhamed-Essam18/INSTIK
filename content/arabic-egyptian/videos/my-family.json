@@ -1,0 +1,12 @@
+{
+  "sample": true,
+  "title": "My family",
+  "titleArabic": "عِيلْتِي",
+  "slug": "my-family",
+  "stage": "hear-it",
+  "topic": "family",
+  "host": "salma",
+  "durationSeconds": 300,
+  "access": "free",
+  "playbackId": "sample-playback-id-my-family"
+}

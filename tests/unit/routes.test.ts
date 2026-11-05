@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   donePath,
+  hostPath,
   hostsPath,
   landingPath,
   languageSlugFromPathname,
@@ -9,6 +10,7 @@ import {
   pricingPath,
   roadmapPath,
   watchPath,
+  watchVideoPath,
 } from "@/lib/routes";
 
 describe("path builders", () => {
@@ -24,6 +26,8 @@ describe("path builders", () => {
     expect(donePath("arabic-egyptian")).toBe("/learn/arabic-egyptian/done");
     expect(roadmapPath("arabic-egyptian")).toBe("/learn/arabic-egyptian/roadmap");
     expect(hostsPath("arabic-egyptian")).toBe("/learn/arabic-egyptian/hosts");
+    expect(hostPath("arabic-egyptian", "salma")).toBe("/learn/arabic-egyptian/hosts/salma");
+    expect(watchVideoPath("arabic-egyptian", "at-the-cafe")).toBe("/learn/arabic-egyptian/watch/at-the-cafe");
   });
 });
 

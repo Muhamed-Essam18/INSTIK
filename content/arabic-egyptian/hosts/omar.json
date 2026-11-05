@@ -1,0 +1,10 @@
+{
+  "sample": true,
+  "slug": "omar",
+  "name": "Omar",
+  "nameArabic": "عمر",
+  "story": "[Sample] I live in Cairo and I know every market and microbus route in my neighbourhood. I talk about getting around, shopping and football, the way I would with a friend visiting for the first time.",
+  "topics": ["Markets", "Transport", "Football"],
+  "photo": null,
+  "order": 2
+}

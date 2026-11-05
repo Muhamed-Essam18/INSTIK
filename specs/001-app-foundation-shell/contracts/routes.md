@@ -10,10 +10,10 @@ The public interface of this feature is its URLs and the shell every page shares
 | `/onboarding` | Onboarding | no | Placeholder |
 | `/pricing` | Pricing | no | Placeholder |
 | `/learn/{language}` | Library | yes | Placeholder |
-| `/learn/{language}/watch` | Player | yes | Placeholder; `/watch/{video}` is added by the content spec |
+| `/learn/{language}/watch` | Player | yes | Placeholder, no longer linked; `/learn/{language}/watch/{video}` (spec 002) is the real entry point |
 | `/learn/{language}/done` | Done for today | yes | Placeholder |
 | `/learn/{language}/roadmap` | Roadmap | yes | Placeholder |
-| `/learn/{language}/hosts` | Host | yes | Placeholder; `/hosts/{host}` is added by the content spec |
+| `/learn/{language}/hosts` | Host | yes | Redirects to the first host; each host is at `/learn/{language}/hosts/{host}` (spec 002) |
 | any other path | Not found | no | Friendly page inside the shell, link back to `/` |
 
 `{language}` is a slug from `content/languages.json`.
@@ -36,7 +36,7 @@ Landmarks in order:
 1. Skip link ("Skip to main content") targeting `#main`. First focusable element.
 2. `header`
    - `instik` wordmark link to `/`
-   - `nav` with accessible name "Main": Library, Roadmap, Hosts. Links go to `/learn/{current or default language}`, `/roadmap`, `/hosts`. The current item has `aria-current="page"`, set by exact section match: Library on `/learn/{language}`, Roadmap on `/learn/{language}/roadmap`, Hosts on `/learn/{language}/hosts`. `/watch`, `/done` and all language-independent pages mark no item.
+   - `nav` with accessible name "Main": Library, Roadmap, Hosts. Links go to `/learn/{current or default language}`, `/roadmap`, `/hosts`. The current item has `aria-current="page"`, set by exact section match: Library on `/learn/{language}`, Roadmap on `/learn/{language}/roadmap`, Hosts on `/learn/{language}/hosts` and any `/learn/{language}/hosts/...` path. `/watch`, `/done` and all language-independent pages mark no item.
    - Hours pill: a link to the Roadmap showing the label "Hours" and a dash (—) instead of a value, with an accessible name that says hours are not tracked yet. It never shows a number or time.
    - Account button: `button` with accessible name "Your account"; no action.
 3. `main` with `id="main"` containing exactly one `h1`.

@@ -12,15 +12,15 @@ export function MainNav({ defaultSlug }: { defaultSlug: string }) {
   const slug = languageSlugFromPathname(pathname) ?? defaultSlug;
 
   const items = [
-    { label: "Library", href: libraryPath(slug) },
-    { label: "Roadmap", href: roadmapPath(slug) },
-    { label: "Hosts", href: hostsPath(slug) },
+    { label: "Library", href: libraryPath(slug), section: false },
+    { label: "Roadmap", href: roadmapPath(slug), section: false },
+    { label: "Hosts", href: hostsPath(slug), section: true },
   ];
 
   return (
     <nav aria-label="Main" className="flex flex-wrap gap-space-2">
-      {items.map(({ label, href }) => {
-        const current = pathname === href;
+      {items.map(({ label, href, section }) => {
+        const current = pathname === href || (section && pathname.startsWith(`${href}/`));
         return (
           <Link
             key={label}

@@ -1,0 +1,10 @@
+{
+  "sample": true,
+  "slug": "salma",
+  "name": "Salma",
+  "nameArabic": "سلمى",
+  "story": "[Sample] I grew up in Alexandria, by the sea. I love talking about food, my family and the little things people say every day. I host because I wish someone had spoken slowly to me when I was learning English.",
+  "topics": ["Alexandria", "Food", "Family", "The sea"],
+  "photo": null,
+  "order": 1
+}

@@ -9,9 +9,11 @@ export const onboardingPath = () => "/onboarding";
 export const pricingPath = () => "/pricing";
 export const libraryPath = (slug: string) => `/learn/${slug}`;
 export const watchPath = (slug: string) => `/learn/${slug}/watch`;
+export const watchVideoPath = (slug: string, video: string) => `/learn/${slug}/watch/${video}`;
 export const donePath = (slug: string) => `/learn/${slug}/done`;
 export const roadmapPath = (slug: string) => `/learn/${slug}/roadmap`;
 export const hostsPath = (slug: string) => `/learn/${slug}/hosts`;
+export const hostPath = (slug: string, host: string) => `/learn/${slug}/hosts/${host}`;
 
 export const screens: readonly Screen[] = [
   { name: "Landing", scope: "independent", path: "/" },

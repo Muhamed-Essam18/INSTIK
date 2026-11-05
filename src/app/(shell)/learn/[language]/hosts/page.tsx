@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { defaultLanguage } from "@/lib/languages";
-import { libraryPath } from "@/lib/routes";
+import { notFound, redirect } from "next/navigation";
+import { Suspense } from "react";
+import { PageFallback } from "@/components/screens/PageFallback";
+import { getHosts } from "@/lib/content";
+import { hostPath } from "@/lib/routes";
 
 export const metadata: Metadata = { title: "Hosts · Instik" };
 
-export default function HostsPage() {
+/** There is no hosts index screen; the Hosts item opens the first host. */
+async function OpenFirstHost({ params }: { params: Promise<{ language: string }> }) {
+  const { language } = await params;
+  const first = getHosts(language)[0];
+  if (!first) notFound(); // a language without content shows its coming-soon notice instead (language layout)
+  return redirect(hostPath(language, first.slug));
+}
+
+export default function HostsPage({ params }: { params: Promise<{ language: string }> }) {
   return (
-    <PlaceholderPage
-      title="Hosts"
-      note="Meet your hosts soon."
-      backHref={libraryPath(defaultLanguage.slug)}
-      backLabel="Back to the Library"
-    />
+    <Suspense fallback={<PageFallback />}>
+      <OpenFirstHost params={params} />
+    </Suspense>
   );
 }

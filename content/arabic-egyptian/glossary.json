@@ -1,0 +1,22 @@
+{
+  "sample": true,
+  "entries": [
+    { "id": "ana", "word": "أَنَا", "base": "أنا", "transliteration": "ana", "english": "I" },
+    { "id": "di", "word": "دِي", "base": "دي", "transliteration": "dī", "english": "this (feminine)" },
+    { "id": "eilti", "word": "عِيلْتِي", "base": "عيلة", "transliteration": "ʿēlti", "english": "my family" },
+    { "id": "andi", "word": "عِنْدِي", "base": "عند", "transliteration": "ʿandi", "english": "I have" },
+    { "id": "akh", "word": "أَخ", "base": "أخ", "transliteration": "akh", "english": "brother" },
+    { "id": "ukht", "word": "أُخْت", "base": "أخت", "transliteration": "ukht", "english": "sister" },
+    { "id": "ommi", "word": "أُمِّي", "base": "أم", "transliteration": "ommi", "english": "my mother" },
+    { "id": "bethebb", "word": "بِتْحِبّ", "base": "حب", "transliteration": "bitḥibb", "english": "she likes" },
+    { "id": "ahwa", "word": "القَهْوَة", "base": "قهوة", "transliteration": "el-ahwa", "english": "the coffee" },
+    { "id": "sabah", "word": "صَباح", "base": "صباح", "transliteration": "ṣabāḥ", "english": "morning" },
+    { "id": "kheir", "word": "الخَيْر", "base": "خير", "transliteration": "el-khēr", "english": "goodness" },
+    { "id": "ayza", "word": "عَايْزَة", "base": "عايز", "transliteration": "ʿāyza", "english": "I want (said by a woman)" },
+    { "id": "men-fadlak", "word": "مِن فَضْلَك", "base": "من فضلك", "transliteration": "min faḍlak", "english": "please" },
+    { "id": "bi-sukkar", "word": "بِسُكَّر", "base": "سكر", "transliteration": "bi-sukkar", "english": "with sugar" },
+    { "id": "walla", "word": "وَلَّا", "base": "ولا", "transliteration": "wallā", "english": "or" },
+    { "id": "men-gheir", "word": "مِن غَيْر", "base": "من غير", "transliteration": "min ghēr", "english": "without" },
+    { "id": "shukran", "word": "شُكْرًا", "base": "شكرا", "transliteration": "shukran", "english": "thank you" }
+  ]
+}
