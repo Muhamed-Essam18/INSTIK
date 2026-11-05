@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instik — pricing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#fff4e6}
+a{color:#c2412a}a:hover{color:#1b2340}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #fff4e6; color: #1b2340; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px">
+  <header style="max-width: 1240px; margin: 0 auto; padding: 20px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+    <a href="Landing.dc.html" style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 34px; color: #1b2340; text-decoration: none">instik</a>
+    <nav aria-label="Main" style="display: flex; gap: 4px; flex-wrap: wrap">
+      <a href="Landing.dc.html#how" style="padding: 10px 14px; color: #1b2340; text-decoration: none; font-size: 15px; font-weight: 500">How it works</a>
+      <a href="Host.dc.html" style="padding: 10px 14px; color: #1b2340; text-decoration: none; font-size: 15px; font-weight: 500">Hosts</a>
+      <a href="Pricing.dc.html" aria-current="page" style="padding: 10px 14px; color: #1b2340; text-decoration: underline; font-size: 15px; font-weight: 600">Pricing</a>
+    </nav>
+    <div style="flex-grow: 1"></div>
+    <a href="Onboarding.dc.html" style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 14px; background: #ff6a4d; color: #1b2340; text-decoration: none; font-size: 15px; font-weight: 600">Start watching free</a>
+  </header>
+
+  <main style="max-width: 1040px; margin: 0 auto; padding: 48px 32px 96px; display: flex; flex-direction: column; gap: 48px">
+    <div style="display: flex; flex-direction: column; gap: 12px; text-align: center; align-items: center">
+      <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 48px; line-height: 54px; font-weight: 800">Start free. Stay because it works.</h1>
+      <p style="margin: 0; font-size: 19px; line-height: 29px; color: #5b6478; max-width: 560px">No ads, no streak pressure, no tricks. Cancel any time.</p>
+      <div role="group" aria-label="Billing period" style="margin-top: 8px; display: flex; padding: 4px; border-radius: 999px; background: #ffffff">
+        <sc-for list="{{ periods }}" as="p" hint-placeholder-count="2">
+          <button onClick="{{ p.pick }}" aria-pressed="{{ p.on }}" style="{{ p.style }}">{{ p.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: stretch">
+      <section style="padding: 36px; border-radius: 24px; background: #ffffff; display: flex; flex-direction: column; gap: 20px">
+        <h2 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 28px; line-height: 34px; font-weight: 800">Free</h2>
+        <p style="margin: 0; display: flex; align-items: baseline; gap: 6px"><span style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 44px; line-height: 48px; font-weight: 800">0</span><span style="color: #5b6478">forever</span></p>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{ freeItems }}" as="f" hint-placeholder-count="4">
+            <li style="display: flex; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0f7566" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{ f }}</li>
+          </sc-for>
+        </ul>
+        <div style="flex-grow: 1"></div>
+        <a href="Onboarding.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 14px; border: 1px solid #1b2340; color: #1b2340; text-decoration: none; font-size: 16px; font-weight: 600">Start watching free</a>
+      </section>
+
+      <section style="padding: 36px; border-radius: 24px; background: #1b2340; color: #fff4e6; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <h2 style="margin: 0; flex-grow: 1; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 28px; line-height: 34px; font-weight: 800">Full access</h2>
+          <sc-if value="{{ yearly }}" hint-placeholder-val="{{ false }}"><span style="padding: 4px 12px; border-radius: 999px; background: #ffc83d; color: #1b2340; font-size: 13px; font-weight: 600">[Save X%]</span></sc-if>
+        </div>
+        <p style="margin: 0; display: flex; align-items: baseline; gap: 6px"><span style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 44px; line-height: 48px; font-weight: 800">{{ price }}</span><span>{{ per }}</span></p>
+        <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{ fullItems }}" as="f" hint-placeholder-count="5">
+            <li style="display: flex; gap: 10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#19a38f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>{{ f }}</li>
+          </sc-for>
+        </ul>
+        <div style="flex-grow: 1"></div>
+        <a href="Onboarding.dc.html" style="display: flex; align-items: center; justify-content: center; height: 52px; border-radius: 14px; background: #ff6a4d; color: #1b2340; text-decoration: none; font-size: 16px; font-weight: 600">Get full access</a>
+      </section>
+    </div>
+
+    <section aria-label="Questions" style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 28px; line-height: 34px; font-weight: 800">Questions</h2>
+      <sc-for list="{{ faqs }}" as="q" hint-placeholder-count="4">
+        <details style="padding: 20px 24px; border-radius: 24px; background: #ffffff">
+          <summary style="font-size: 17px; font-weight: 600; cursor: pointer">{{ q.q }}</summary>
+          <p style="margin: 12px 0 0; font-size: 16px; line-height: 25px; color: #5b6478">{{ q.a }}</p>
+        </details>
+      </sc-for>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { period: 'Monthly' };
+  }
+  renderVals() {
+    const s = this.state;
+    const periods = ['Monthly', 'Yearly'].map((label) => ({
+      label,
+      on: s.period === label ? 'true' : 'false',
+      pick: () => this.setState({ period: label }),
+      style: 'height: 44px; padding: 0 22px; border-radius: 999px; border: none; font-size: 15px; font-weight: 600; cursor: pointer; ' + (s.period === label ? 'background: #1b2340; color: #fff4e6' : 'background: transparent; color: #1b2340')
+    }));
+    const yearly = s.period === 'Yearly';
+    return {
+      periods,
+      yearly,
+      price: yearly ? '[PRICE]' : '[PRICE]',
+      per: yearly ? 'per year' : 'per month',
+      freeItems: ['A starter set of Hear it and Follow it videos', 'Hours counter and roadmap', 'Interactive transcripts', 'Your rhythm view'],
+      fullItems: ['Every video at every stage', 'New videos every week', 'Every host', 'Interactive transcripts with word meanings', 'Add time you spend outside Instik'],
+      faqs: [
+        { q: 'Can I cancel any time?', a: 'Yes. Cancel from your account in two clicks. Your hours stay with you.' },
+        { q: 'Is this AI?', a: 'No. Every video is made with real native speakers. We use technology to help you understand, not to replace the people you learn from.' },
+        { q: 'How long until I understand?', a: 'Everyone is different. Our roadmap shows estimated hours for each stage, and your own hours show where you are.' },
+        { q: 'Which languages are coming?', a: 'Egyptian Arabic is first. Join the waitlist and tell us which language you want next.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

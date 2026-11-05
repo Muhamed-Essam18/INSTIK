@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instik — video player and transcript</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&amp;family=Inter:ital,wght@0,400;0,500;0,600;1,400&amp;family=Noto+Naskh+Arabic:wght@400;500&amp;family=IBM+Plex+Sans+Arabic:wght@500&amp;display=swap">
+<style>
+body{margin:0;background:#fff4e6}
+a{color:#c2412a}a:hover{color:#1b2340}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #fff4e6; color: #1b2340; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px">
+
+  <header style="background: #fff4e6; border-bottom: 1px solid #1b23401f">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+      <a href="Landing.dc.html" style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 28px; line-height: 32px; color: #1b2340; text-decoration: none; letter-spacing: -0.01em">instik</a>
+      <nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+        <a href="Library.dc.html" style="padding: 10px 14px; border-radius: 14px; color: #1b2340; text-decoration: none; font-size: 14px; font-weight: 600; background: #ffe1d6">Library</a>
+        <a href="Progress.dc.html" style="padding: 10px 14px; border-radius: 14px; color: #5b6478; text-decoration: none; font-size: 14px; font-weight: 600">Roadmap</a>
+        <a href="Host.dc.html" style="padding: 10px 14px; border-radius: 14px; color: #5b6478; text-decoration: none; font-size: 14px; font-weight: 600">Hosts</a>
+      </nav>
+      <div style="flex-grow: 1"></div>
+      <a href="Progress.dc.html" aria-label="Your hours: 12 hours 40 minutes of Egyptian Arabic" style="display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 999px; background: #ffffff; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; text-decoration: none; color: #1b2340">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11" fill="none" stroke="#ffe1d6" stroke-width="4"></circle><circle cx="14" cy="14" r="11" fill="none" stroke="#ff6a4d" stroke-width="4" stroke-linecap="round" stroke-dasharray="46 69" transform="rotate(-90 14 14)"></circle></svg>
+        <span style="display: flex; flex-direction: column; line-height: 16px">
+          <span style="font-size: 12px; color: #5b6478; font-weight: 500">Hours</span>
+          <span style="font-size: 15px; font-weight: 600">12h 40m</span>
+        </span>
+      </a>
+      <button aria-label="Your account" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #1b2340; color: #fff4e6; font-weight: 600; font-size: 15px; cursor: pointer">M</button>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 32px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <section aria-label="Video" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 24px">
+
+      <div style="position: relative; aspect-ratio: 16 / 9; border-radius: 24px; background: #1b2340; overflow: hidden; display: flex; align-items: center; justify-content: center">
+        <span style="position: absolute; top: 20px; left: 24px; font-size: 13px; line-height: 18px; color: #fff4e6; font-weight: 500">[Video: host on camera, real place, natural light]</span>
+        <span style="position: absolute; top: 16px; right: 20px; padding: 6px 12px; border-radius: 999px; background: #19a38f; color: #1b2340; font-size: 13px; font-weight: 600">Follow it</span>
+        <button aria-label="Play" style="width: 88px; height: 88px; border-radius: 999px; border: none; background: #ff6a4d; display: flex; align-items: center; justify-content: center; cursor: pointer">
+          <svg width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="#1b2340"></path></svg>
+        </button>
+        <div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px">
+          <div style="height: 6px; border-radius: 999px; background: #fff4e633">
+            <div style="width: 26%; height: 6px; border-radius: 999px; background: #ff6a4d"></div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px; color: #fff4e6; font-size: 14px; font-weight: 500">
+            <button aria-label="Pause" style="width: 44px; height: 44px; border: none; background: transparent; color: #fff4e6; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 5v14M16 5v14"></path></svg>
+            </button>
+            <button aria-label="Back 5 seconds" style="width: 44px; height: 44px; border: none; background: transparent; color: #fff4e6; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+            </button>
+            <span>2:14 / 8:40</span>
+            <div style="flex-grow: 1"></div>
+            <button style="height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid #fff4e666; background: transparent; color: #fff4e6; font-size: 13px; font-weight: 600; cursor: pointer">0.9×</button>
+            <button aria-label="Full screen" style="width: 44px; height: 44px; border: none; background: transparent; color: #fff4e6; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+        <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 32px; line-height: 40px; font-weight: 800">At the café</h1>
+          <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5b6478; font-weight: 500">Follow it · 8 min 40 s · Egyptian Arabic</p>
+        </div>
+        <a href="Host.dc.html" style="display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; border-radius: 14px; background: #ffffff; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; text-decoration: none; color: #1b2340">
+          <span aria-hidden="true" style="width: 44px; height: 44px; border-radius: 999px; background: #ffc83d; display: flex; align-items: center; justify-content: center; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 18px">S</span>
+          <span style="display: flex; flex-direction: column; line-height: 18px">
+            <span style="font-size: 12px; color: #5b6478; font-weight: 500">Your host</span>
+            <span style="font-size: 15px; font-weight: 600">Salma</span>
+          </span>
+        </a>
+      </div>
+
+      <div style="padding: 24px; border-radius: 24px; background: #ffffff; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+        <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 4px">
+          <span lang="arz" dir="rtl" style="align-self: flex-start; font-family: 'IBM Plex Sans Arabic', Tahoma, sans-serif; font-size: 22px; line-height: 34px; font-weight: 500">فاهم؟</span>
+          <span style="font-size: 16px; line-height: 24px; font-weight: 600">Did you follow this one?</span>
+          <span style="font-size: 13px; line-height: 18px; color: #5b6478">No score. It just helps us pick what's up next.</span>
+        </div>
+        <div role="group" aria-label="How much did you understand" style="display: flex; gap: 8px; flex-wrap: wrap">
+          <sc-for list="{{ answers }}" as="a" hint-placeholder-count="3">
+            <button onClick="{{ a.pick }}" aria-pressed="{{ a.pressed }}" style="{{ a.style }}">{{ a.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <section aria-label="Up next" style="display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap">
+          <h2 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 22px; line-height: 30px; font-weight: 700">Up next</h2>
+          <div style="flex-grow: 1"></div>
+          <button onClick="{{ toggleAutoplay }}" aria-pressed="{{ autoplay }}" style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 4px; border: none; background: transparent; color: #5b6478; font-size: 14px; font-weight: 500; cursor: pointer">
+            Autoplay next
+            <span aria-hidden="true" style="{{ switchTrack }}"><span style="{{ switchKnob }}"></span></span>
+          </button>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px">
+          <a href="#" style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 24px; background: #ffffff; text-decoration: none; color: #1b2340; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f">
+            <span style="aspect-ratio: 16 / 9; border-radius: 14px; background: #ffe1d6; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box">
+              <span style="padding: 4px 10px; border-radius: 999px; background: #19a38f; font-size: 12px; font-weight: 600; color: #1b2340">Follow it</span>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px 4px">
+              <span style="font-size: 16px; font-weight: 600">Buying bread at the bakery</span>
+              <span style="font-size: 13px; line-height: 18px; color: #5b6478; font-weight: 500">7 min · with Omar</span>
+            </span>
+          </a>
+          <a href="#" style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 24px; background: #ffffff; text-decoration: none; color: #1b2340; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f">
+            <span style="aspect-ratio: 16 / 9; border-radius: 14px; background: #ffe1d6; display: flex; align-items: flex-end; padding: 10px; box-sizing: border-box">
+              <span style="padding: 4px 10px; border-radius: 999px; background: #19a38f; font-size: 12px; font-weight: 600; color: #1b2340">Follow it</span>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px 4px">
+              <span style="font-size: 16px; font-weight: 600">A walk on the Corniche</span>
+              <span style="font-size: 13px; line-height: 18px; color: #5b6478; font-weight: 500">11 min · with Salma</span>
+            </span>
+          </a>
+        </div>
+        <p style="margin: 0; font-size: 14px; line-height: 20px; color: #5b6478">That's all for Up next. Pick one when you're ready, or <a href="Done.dc.html" style="font-weight: 600">finish for today</a>.</p>
+      </section>
+    </section>
+
+    <aside aria-label="Transcript" style="flex: 1 1 420px; min-width: 0; max-width: 560px; border-radius: 24px; background: #ffffff; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; display: flex; flex-direction: column">
+      <div style="padding: 20px 24px 16px; border-bottom: 1px solid #1b23401f; display: flex; flex-direction: column; gap: 12px">
+        <h2 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 22px; line-height: 30px; font-weight: 700">Transcript</h2>
+        <div role="group" aria-label="Show in transcript" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{ toggles }}" as="t" hint-placeholder-count="4">
+            <button onClick="{{ t.flip }}" aria-pressed="{{ t.on }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <ol style="list-style: none; margin: 0; padding: 12px; display: flex; flex-direction: column; gap: 4px">
+        <sc-for list="{{ lines }}" as="line" hint-placeholder-count="4">
+          <li style="{{ line.rowStyle }}">
+            <span style="font-size: 12px; line-height: 18px; color: #5b6478; font-weight: 500">{{ line.time }}</span>
+            <sc-if value="{{ showArabic }}" hint-placeholder-val="{{ true }}">
+              <p lang="arz" dir="rtl" style="margin: 0; font-family: 'Noto Naskh Arabic', 'Times New Roman', serif; font-size: 26px; line-height: 48px; text-align: right">{{ line.pre }}<mark style="{{ line.markStyle }}">{{ line.word }}</mark>{{ line.post }}</p>
+            </sc-if>
+            <sc-if value="{{ showTranslit }}" hint-placeholder-val="{{ true }}">
+              <p style="margin: 0; font-size: 15px; line-height: 22px; font-style: italic; color: #1b2340">{{ line.translit }}</p>
+            </sc-if>
+            <sc-if value="{{ showEnglish }}" hint-placeholder-val="{{ true }}">
+              <p style="margin: 0; font-size: 15px; line-height: 22px; color: #5b6478">{{ line.en }}</p>
+            </sc-if>
+            <sc-if value="{{ line.current }}" hint-placeholder-val="{{ false }}">
+              <div role="dialog" aria-label="Word: hot" style="margin-top: 8px; padding: 16px; border-radius: 14px; background: #1b2340; color: #fff4e6; box-shadow: 0 10px 28px -8px #1b234033; display: flex; align-items: center; gap: 16px">
+                <span lang="arz" dir="rtl" style="font-family: 'Noto Naskh Arabic', 'Times New Roman', serif; font-size: 30px; line-height: 44px">{{ wordAr }}</span>
+                <span style="display: flex; flex-direction: column; flex-grow: 1; line-height: 20px">
+                  <span style="font-size: 15px; font-style: italic">sokhna</span>
+                  <span style="font-size: 15px; font-weight: 600">hot (for a drink or food)</span>
+                </span>
+                <button aria-label="Hear the word" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #ff6a4d; color: #1b2340; display: flex; align-items: center; justify-content: center; cursor: pointer">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"></path><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"></path></svg>
+                </button>
+              </div>
+            </sc-if>
+          </li>
+        </sc-for>
+      </ol>
+      <p style="margin: 0; padding: 0 24px 20px; font-size: 13px; line-height: 18px; color: #5b6478">Tap any word for its meaning.</p>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { arabic: true, tashkeel: true, translit: true, english: false, answer: null, autoplay: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const chip = (on) => 'height: 44px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; ' +
+      (on ? 'border: 1px solid #1b2340; background: #1b2340; color: #fff4e6' : 'border: 1px solid #5b6478; background: #ffffff; color: #1b2340');
+    const toggles = [
+      { key: 'arabic', label: 'Arabic' },
+      { key: 'tashkeel', label: 'Tashkeel' },
+      { key: 'translit', label: 'Transliteration' },
+      { key: 'english', label: 'English' }
+    ].map((t) => ({
+      label: t.label,
+      on: s[t.key] ? 'true' : 'false',
+      style: chip(s[t.key]),
+      flip: () => this.setState({ [t.key]: !s[t.key] })
+    }));
+    const T = s.tashkeel;
+    const raw = [
+      { time: '1:52', pre: T ? 'أَهْلاً! أَنا في القَهْوَة دِلْوَقْتِي.' : 'أهلاً! أنا في القهوة دلوقتي.', word: '', post: '', translit: 'ahlan! ana fil-ahwa dilwa\u2019ti.', en: 'Hi! I\u2019m at the café now.' },
+      { time: '2:09', pre: T ? 'دي قَهْوَة. القَهْوَة ' : 'دي قهوة. القهوة ', word: T ? 'سُخْنَة' : 'سخنة', post: '.', translit: 'di ahwa. il-ahwa sokhna.', en: 'This is coffee. The coffee is hot.', current: true },
+      { time: '2:21', pre: T ? 'أَنا بَحِبّ القَهْوَة الصُّبْح.' : 'أنا بحب القهوة الصبح.', word: '', post: '', translit: 'ana baḥibb il-ahwa iṣ-ṣobḥ.', en: 'I love coffee in the morning.' },
+      { time: '2:33', pre: T ? 'وِإنْتَ؟ بِتْحِبّ الشّاي وَلّا القَهْوَة؟' : 'وإنت؟ بتحب الشاي ولا القهوة؟', word: '', post: '', translit: 'wi inta? bitḥibb ish-shāy walla il-ahwa?', en: 'And you? Do you like tea or coffee?' }
+    ];
+    const lines = raw.map((l) => ({
+      ...l,
+      current: !!l.current,
+      rowStyle: 'display: flex; flex-direction: column; gap: 2px; padding: 12px 16px; border-radius: 14px; ' + (l.current ? 'background: #ffe1d6' : 'background: #ffffff'),
+      markStyle: l.word ? 'background: #ffc83d; color: #1b2340; border-radius: 6px; padding: 0 4px' : 'background: none; padding: 0'
+    }));
+    const answers = ['Mostly', 'Some of it', 'Not yet'].map((label) => {
+      const on = s.answer === label;
+      return {
+        label,
+        pressed: on ? 'true' : 'false',
+        style: 'height: 44px; padding: 0 18px; border-radius: 14px; font-size: 14px; font-weight: 600; cursor: pointer; ' +
+          (on ? 'border: 1px solid #19a38f; background: #19a38f; color: #1b2340' : 'border: 1px solid #5b6478; background: #ffffff; color: #1b2340'),
+        pick: () => this.setState({ answer: label })
+      };
+    });
+    return {
+      toggles,
+      lines,
+      answers,
+      showArabic: s.arabic,
+      showTranslit: s.translit,
+      showEnglish: s.english,
+      wordAr: T ? 'سُخْنَة' : 'سخنة',
+      autoplay: s.autoplay ? 'true' : 'false',
+      toggleAutoplay: () => this.setState({ autoplay: !s.autoplay }),
+      switchTrack: 'width: 44px; height: 26px; border-radius: 999px; display: flex; align-items: center; padding: 3px; box-sizing: border-box; ' + (s.autoplay ? 'background: #19a38f; justify-content: flex-end' : 'background: #5b6478; justify-content: flex-start'),
+      switchKnob: 'width: 20px; height: 20px; border-radius: 999px; background: #ffffff; display: block'
+    };
+  }
+}
+</script>
+</body>
+</html>

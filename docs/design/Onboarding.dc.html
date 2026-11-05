@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instik — onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#fff4e6}
+a{color:#c2412a}a:hover{color:#1b2340}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #fff4e6; color: #1b2340; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px">
+  <header style="max-width: 1240px; margin: 0 auto; padding: 20px 32px; display: flex; align-items: center; gap: 24px">
+    <a href="Landing.dc.html" style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 30px; line-height: 34px; color: #1b2340; text-decoration: none">instik</a>
+    <div style="flex-grow: 1"></div>
+    <span style="font-size: 14px; color: #5b6478; font-weight: 500">Step {{ stepNo }} of 4</span>
+  </header>
+
+  <main style="max-width: 720px; margin: 0 auto; padding: 32px 32px 80px; display: flex; flex-direction: column; gap: 32px">
+    <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+      <sc-for list="{{ bars }}" as="b" hint-placeholder-count="4"><span style="{{ b.style }}"></span></sc-for>
+    </div>
+
+    <sc-if value="{{ s1 }}" hint-placeholder-val="{{ true }}">
+      <section style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 40px; line-height: 46px; font-weight: 800">What do you want to pick up?</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 28px; color: #5b6478">You can add more languages later.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <button onClick="{{ next }}" style="display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: 24px; border: 2px solid #1b2340; background: #ffffff; text-align: left; cursor: pointer; color: #1b2340">
+            <span style="display: flex; flex-direction: column; flex-grow: 1">
+              <span style="font-size: 20px; line-height: 28px; font-weight: 600">Egyptian Arabic</span>
+              <span style="font-size: 14px; color: #5b6478">The Arabic of Cairo, Alexandria, film and music</span>
+            </span>
+            <span style="padding: 6px 12px; border-radius: 999px; background: #19a38f; font-size: 13px; font-weight: 600">Available</span>
+          </button>
+          <div style="display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: 24px; background: #ffffff80; color: #5b6478">
+            <span style="display: flex; flex-direction: column; flex-grow: 1">
+              <span style="font-size: 20px; line-height: 28px; font-weight: 600; color: #1b2340">Spanish</span>
+              <span style="font-size: 14px">Coming later</span>
+            </span>
+            <a href="Landing.dc.html#waitlist" style="font-size: 14px; font-weight: 600">Join the waitlist</a>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px; padding: 20px 24px; border-radius: 24px; background: #ffffff80; color: #5b6478">
+            <span style="display: flex; flex-direction: column; flex-grow: 1">
+              <span style="font-size: 20px; line-height: 28px; font-weight: 600; color: #1b2340">Something else</span>
+              <span style="font-size: 14px">Tell us which one you'd like next</span>
+            </span>
+            <a href="Landing.dc.html#waitlist" style="font-size: 14px; font-weight: 600">Join the waitlist</a>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s2 }}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 40px; line-height: 46px; font-weight: 800">How much Egyptian Arabic do you know?</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 28px; color: #5b6478">A rough guess is fine. You can change it any time.</p>
+        </div>
+        <div role="radiogroup" aria-label="Your level" style="display: flex; flex-direction: column; gap: 12px">
+          <sc-for list="{{ levels }}" as="l" hint-placeholder-count="4">
+            <button role="radio" aria-checked="{{ l.checked }}" onClick="{{ l.pick }}" style="{{ l.style }}">
+              <span style="display: flex; flex-direction: column; flex-grow: 1; text-align: left">
+                <span style="font-size: 18px; line-height: 26px; font-weight: 600">{{ l.title }}</span>
+                <span style="font-size: 14px; color: #5b6478">{{ l.sub }}</span>
+              </span>
+              <span style="font-size: 13px; font-weight: 600; color: #0f7566">{{ l.stage }}</span>
+            </button>
+          </sc-for>
+        </div>
+        <p style="margin: 0; font-size: 15px; color: #5b6478">Not sure? <a href="#" style="font-weight: 600">Try a short listening check</a>. It's optional and there's no score.</p>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 40px; line-height: 46px; font-weight: 800">How long do you usually have?</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 28px; color: #5b6478">We'll tell you when that's enough for today. No streaks, nothing to lose.</p>
+        </div>
+        <div role="radiogroup" aria-label="Time per day" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+          <sc-for list="{{ times }}" as="t" hint-placeholder-count="4">
+            <button role="radio" aria-checked="{{ t.checked }}" onClick="{{ t.pick }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+      <section style="display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 40px; line-height: 46px; font-weight: 800">Save your hours</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 28px; color: #5b6478">Create a free account so every minute you watch is counted.</p>
+        </div>
+        <button style="height: 56px; border-radius: 14px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 16px; font-weight: 600; cursor: pointer">Continue with Google</button>
+        <div style="display: flex; align-items: center; gap: 12px; color: #5b6478; font-size: 14px"><span style="flex-grow: 1; height: 1px; background: #1b23401f"></span>or<span style="flex-grow: 1; height: 1px; background: #1b23401f"></span></div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Email
+          <input type="email" placeholder="you@example.com" style="height: 52px; padding: 0 14px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font: inherit; font-size: 16px; font-weight: 400; box-sizing: border-box">
+        </label>
+        <p style="margin: 0; font-size: 13px; line-height: 18px; color: #5b6478">We'll send you a sign-in link. No password to remember.</p>
+      </section>
+    </sc-if>
+
+    <div style="display: flex; gap: 12px; align-items: center">
+      <sc-if value="{{ canBack }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ back }}" style="height: 52px; padding: 0 20px; border-radius: 14px; border: none; background: transparent; color: #1b2340; font-size: 16px; font-weight: 600; cursor: pointer">Back</button>
+      </sc-if>
+      <div style="flex-grow: 1"></div>
+      <sc-if value="{{ midStep }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ next }}" style="height: 52px; padding: 0 28px; border-radius: 14px; border: none; background: #ff6a4d; color: #1b2340; font-size: 16px; font-weight: 600; cursor: pointer">Continue</button>
+      </sc-if>
+      <sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+        <a href="Library.dc.html" style="display: inline-flex; align-items: center; height: 52px; padding: 0 28px; border-radius: 14px; background: #ff6a4d; color: #1b2340; text-decoration: none; font-size: 16px; font-weight: 600">Start watching</a>
+      </sc-if>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 1, level: 'none', time: '20' };
+  }
+  renderVals() {
+    const s = this.state;
+    const opt = (on) => 'display: flex; align-items: center; gap: 16px; padding: 18px 22px; border-radius: 24px; cursor: pointer; color: #1b2340; background: #ffffff; ' + (on ? 'border: 2px solid #1b2340' : 'border: 2px solid #ffffff');
+    const levels = [
+      { id: 'none', title: 'None at all', sub: 'Maybe a word or two', stage: 'Hear it' },
+      { id: 'few', title: 'Some words and phrases', sub: 'Greetings, numbers, a few songs', stage: 'Hear it' },
+      { id: 'slow', title: 'I can follow slow, simple talk', sub: 'With visuals and context', stage: 'Follow it' },
+      { id: 'most', title: 'I understand a lot of everyday talk', sub: 'But fast speech loses me', stage: 'Understand it' }
+    ].map((l) => ({ ...l, checked: s.level === l.id ? 'true' : 'false', style: opt(s.level === l.id), pick: () => this.setState({ level: l.id }) }));
+    const times = ['10', '20', '30', '60'].map((m) => ({
+      label: m + ' min',
+      checked: s.time === m ? 'true' : 'false',
+      pick: () => this.setState({ time: m }),
+      style: 'height: 72px; border-radius: 24px; cursor: pointer; font-size: 18px; font-weight: 600; color: #1b2340; ' + (s.time === m ? 'border: 2px solid #1b2340; background: #ffffff' : 'border: 2px solid #ffffff; background: #ffffff')
+    }));
+    const bars = [1, 2, 3, 4].map((n) => ({ style: 'display: block; height: 6px; border-radius: 999px; background: ' + (n <= s.step ? '#ff6a4d' : '#1b23401f') }));
+    return {
+      stepNo: s.step,
+      s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4,
+      midStep: s.step === 2 || s.step === 3,
+      canBack: s.step > 1,
+      levels, times, bars,
+      next: () => this.setState({ step: Math.min(4, s.step + 1) }),
+      back: () => this.setState({ step: Math.max(1, s.step - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

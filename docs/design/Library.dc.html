@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instik — library</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#fff4e6}
+a{color:#c2412a}a:hover{color:#1b2340}
+button{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #fff4e6; color: #1b2340; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 16px; line-height: 24px">
+
+  <header style="border-bottom: 1px solid #1b23401f">
+    <div style="max-width: 1360px; margin: 0 auto; padding: 16px 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 24px">
+      <a href="Landing.dc.html" style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 28px; line-height: 32px; color: #1b2340; text-decoration: none">instik</a>
+      <nav aria-label="Main" style="display: flex; gap: 8px; flex-wrap: wrap">
+        <a href="Library.dc.html" aria-current="page" style="padding: 10px 14px; border-radius: 14px; color: #1b2340; text-decoration: none; font-size: 14px; font-weight: 600; background: #ffe1d6">Library</a>
+        <a href="Progress.dc.html" style="padding: 10px 14px; border-radius: 14px; color: #5b6478; text-decoration: none; font-size: 14px; font-weight: 600">Roadmap</a>
+        <a href="Host.dc.html" style="padding: 10px 14px; border-radius: 14px; color: #5b6478; text-decoration: none; font-size: 14px; font-weight: 600">Hosts</a>
+      </nav>
+      <div style="flex-grow: 1"></div>
+      <a href="Progress.dc.html" aria-label="Your hours: 12 hours 40 minutes" style="display: flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border-radius: 999px; background: #ffffff; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; text-decoration: none; color: #1b2340">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="11" fill="none" stroke="#ffe1d6" stroke-width="4"></circle><circle cx="14" cy="14" r="11" fill="none" stroke="#ff6a4d" stroke-width="4" stroke-linecap="round" stroke-dasharray="46 69" transform="rotate(-90 14 14)"></circle></svg>
+        <span style="display: flex; flex-direction: column; line-height: 16px"><span style="font-size: 12px; color: #5b6478; font-weight: 500">Hours</span><span style="font-size: 15px; font-weight: 600">12h 40m</span></span>
+      </a>
+      <button aria-label="Your account" style="width: 44px; height: 44px; border-radius: 999px; border: none; background: #1b2340; color: #fff4e6; font-weight: 600; font-size: 15px; cursor: pointer">M</button>
+    </div>
+  </header>
+
+  <main style="max-width: 1360px; margin: 0 auto; padding: 40px 32px 80px; display: flex; flex-direction: column; gap: 32px">
+    <a href="Player.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 24px; border-radius: 24px; background: #1b2340; color: #fff4e6; text-decoration: none">
+      <span style="width: 200px; aspect-ratio: 16 / 9; border-radius: 14px; background: #ffe1d6; display: flex; align-items: center; justify-content: center">
+        <span style="width: 52px; height: 52px; border-radius: 999px; background: #ff6a4d; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="#1b2340"></path></svg></span>
+      </span>
+      <span style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 14px; font-weight: 500">Pick up where you left off</span>
+        <span style="font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 28px; line-height: 34px; font-weight: 800">At the café</span>
+        <span style="font-size: 14px">2:14 of 8:40 · with Salma</span>
+      </span>
+      <span style="display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 14px; background: #ff6a4d; color: #1b2340; font-size: 15px; font-weight: 600">Keep watching</span>
+    </a>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end">
+      <h1 style="flex: 1 1 300px; margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 40px; line-height: 46px; font-weight: 800">Library</h1>
+      <label style="flex: 0 1 360px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Search videos
+        <input type="search" placeholder="Café, family, microbus…" style="height: 48px; padding: 0 14px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font: inherit; font-weight: 400; box-sizing: border-box">
+      </label>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div role="group" aria-label="Stage" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <span style="font-size: 14px; font-weight: 600; width: 64px">Stage</span>
+        <sc-for list="{{ stages }}" as="st" hint-placeholder-count="4">
+          <button onClick="{{ st.pick }}" aria-pressed="{{ st.on }}" style="{{ st.style }}">{{ st.label }}</button>
+        </sc-for>
+      </div>
+      <div role="group" aria-label="Topic" style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+        <span style="font-size: 14px; font-weight: 600; width: 64px">Topic</span>
+        <button style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 14px; font-weight: 600; cursor: pointer">Daily life</button>
+        <button style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 14px; font-weight: 600; cursor: pointer">Food</button>
+        <button style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 14px; font-weight: 600; cursor: pointer">Family</button>
+        <button style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 14px; font-weight: 600; cursor: pointer">Getting around</button>
+        <button style="height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 14px; font-weight: 600; cursor: pointer">Culture</button>
+      </div>
+    </div>
+
+    <p style="margin: 0; font-size: 15px; color: #5b6478">{{ countLine }}</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px">
+      <sc-for list="{{ videos }}" as="v" hint-placeholder-count="6">
+        <a href="Player.dc.html" style="display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 24px; background: #ffffff; text-decoration: none; color: #1b2340; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f">
+          <span style="{{ v.thumb }}">
+            <span style="font-size: 12px; color: #5b6478">[Thumbnail]</span>
+            <span style="padding: 4px 10px; border-radius: 999px; background: #19a38f; font-size: 12px; font-weight: 600; color: #1b2340">{{ v.stage }}</span>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px; padding: 0 4px 4px">
+            <span style="font-size: 17px; line-height: 24px; font-weight: 600">{{ v.title }}</span>
+            <span style="font-size: 13px; line-height: 18px; color: #5b6478; font-weight: 500">{{ v.meta }}</span>
+            <sc-if value="{{ v.watched }}" hint-placeholder-val="{{ false }}">
+              <span style="margin-top: 4px; font-size: 13px; font-weight: 600; color: #0f7566">Watched</span>
+            </sc-if>
+          </span>
+        </a>
+      </sc-for>
+    </div>
+
+    <p style="margin: 0; padding: 24px; border-radius: 24px; background: #ffffff80; text-align: center; font-size: 15px; color: #5b6478">That's everything for this stage. New videos arrive every week.</p>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { stage: 'Follow it' };
+  }
+  renderVals() {
+    const s = this.state;
+    const all = [
+      { title: 'Colours at the market', meta: '6 min · with Omar', stage: 'Hear it', watched: true },
+      { title: 'My family', meta: '5 min · with Salma', stage: 'Hear it', watched: true },
+      { title: 'Numbers at the fruit stand', meta: '7 min · with Omar', stage: 'Hear it' },
+      { title: 'At the café', meta: '8 min · with Salma', stage: 'Follow it' },
+      { title: 'Buying bread at the bakery', meta: '7 min · with Omar', stage: 'Follow it' },
+      { title: 'A walk on the Corniche', meta: '11 min · with Salma', stage: 'Follow it' },
+      { title: 'Taking a microbus', meta: '9 min · with Omar', stage: 'Follow it', watched: true },
+      { title: 'Ramadan nights', meta: '14 min · with Salma', stage: 'Understand it' },
+      { title: 'A day at a wedding', meta: '16 min · with Omar', stage: 'Understand it' }
+    ];
+    const list = all.filter((v) => v.stage === s.stage).map((v, i) => ({
+      ...v,
+      watched: !!v.watched,
+      thumb: 'aspect-ratio: 16 / 9; border-radius: 14px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; padding: 10px; box-sizing: border-box; background: ' + (i % 2 ? '#fff4e6' : '#ffe1d6')
+    }));
+    const stages = ['Hear it', 'Follow it', 'Understand it', 'Join in'].map((label) => ({
+      label,
+      on: s.stage === label ? 'true' : 'false',
+      pick: () => this.setState({ stage: label }),
+      style: 'height: 40px; padding: 0 16px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; ' + (s.stage === label ? 'border: 1px solid #1b2340; background: #1b2340; color: #fff4e6' : 'border: 1px solid #5b6478; background: #ffffff; color: #1b2340')
+    }));
+    return {
+      stages,
+      videos: list,
+      countLine: list.length ? list.length + ' videos at ' + s.stage + '. Your stage is Follow it.' : 'No videos at ' + s.stage + ' yet. They are on the way.'
+    };
+  }
+}
+</script>
+</body>
+</html>
