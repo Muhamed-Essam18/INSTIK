@@ -6,6 +6,7 @@
       "name": "Arabic",
       "variety": "Egyptian",
       "nativeName": "مصري",
+      "description": "The Arabic of Cairo, Alexandria, film and music",
       "understoodWord": "فاهم؟",
       "script": "arabic",
       "direction": "rtl",

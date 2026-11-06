@@ -7,17 +7,19 @@ import type { TranscriptView } from "@/lib/content/transcript";
 import type { Language } from "@/lib/languages.schema";
 import { findCueIndex } from "@/lib/player/cue-index";
 import { formatClock } from "@/lib/player/format";
-import { DEFAULT_LAYERS, layersKey, layersSchema } from "@/lib/player/preferences";
+import { DEFAULT_LAYERS, type Layers } from "@/lib/player/preferences";
 import { stripTashkeel } from "@/lib/text/normalize";
-import { useStoredValue } from "@/hooks/useStoredValue";
+import { useAccountLayers } from "@/hooks/useAccountLayers";
+import { SaveNote } from "@/components/watch/SaveNote";
 import { LayerToggles } from "./LayerToggles";
 import { WordCard } from "./WordCard";
 
 type Props = {
-  languageSlug: string;
   language: Language;
   /** Undefined when the video has no transcript yet. */
   view: TranscriptView | undefined;
+  /** The learner's layers from their account; the defaults when they have not changed anything. */
+  initialLayers?: Layers;
 };
 
 const MEDIA_EVENTS = ["timeupdate", "seeking", "seeked"];
@@ -26,10 +28,14 @@ type OpenWord = { line: number; segment: number; entryId: string };
 
 const wordKey = (line: number, segment: number) => `${line}:${segment}`;
 
-export function TranscriptPanel({ languageSlug, language, view }: Props) {
+export function TranscriptPanel({ language, view, initialLayers = DEFAULT_LAYERS }: Props) {
   const { media, seekTo } = usePlayback();
   const lines = view?.lines;
-  const [layers, setLayers] = useStoredValue(layersKey(languageSlug), layersSchema, DEFAULT_LAYERS);
+  const [layers, setLayers, saveFailed] = useAccountLayers({
+    initial: initialLayers,
+    languageCode: language.code,
+    allowed: language.transcriptLayers,
+  });
   // Tashkeel alone shows nothing, so it does not count as a displayed layer.
   const showing = {
     script: layers.script && language.transcriptLayers.includes("script"),
@@ -75,6 +81,7 @@ export function TranscriptPanel({ languageSlug, language, view }: Props) {
       <div className="flex flex-col gap-3 border-b border-hairline px-6 pt-5 pb-4">
         <h2 className="m-0 font-display text-heading text-ink">Transcript</h2>
         {lines ? <LayerToggles language={language} layers={layers} onChange={setLayers} /> : null}
+        <SaveNote show={saveFailed} />
       </div>
 
       {lines ? (

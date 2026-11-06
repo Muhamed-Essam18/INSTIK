@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, within } from "@testing-librar
 import { Profiler, useEffect } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resetStoredMemory } from "@/lib/player/preferences";
+import type { Layers } from "@/lib/player/preferences";
 import { PlaybackProvider, usePlayback } from "@/components/player/PlaybackProvider";
 import { TranscriptPanel } from "@/components/transcript/TranscriptPanel";
 import type { TranscriptView } from "@/lib/content/transcript";
@@ -10,6 +10,9 @@ import { getLanguageBySlug } from "@/lib/languages";
 import { FakeMedia } from "../helpers/fake-media";
 
 vi.mock("next/navigation", () => import("../helpers/next-navigation"));
+
+const actions = vi.hoisted(() => ({ saveLayers: vi.fn() }));
+vi.mock("@/lib/learner/preference-actions", () => ({ saveLayers: actions.saveLayers, saveAnswer: vi.fn() }));
 
 const language = getLanguageBySlug("arabic-egyptian")!;
 
@@ -30,8 +33,13 @@ function Registrar({ media }: { media: FakeMedia }) {
   return null;
 }
 
-function setup(media = new FakeMedia(), transcript: TranscriptView | null = view, onRender?: () => void) {
-  const panel = <TranscriptPanel languageSlug="arabic-egyptian" language={language} view={transcript ?? undefined} />;
+function setup(
+  media = new FakeMedia(),
+  transcript: TranscriptView | null = view,
+  onRender?: () => void,
+  initialLayers?: Layers,
+) {
+  const panel = <TranscriptPanel language={language} view={transcript ?? undefined} initialLayers={initialLayers} />;
   render(
     <PlaybackProvider>
       <Registrar media={media} />
@@ -52,8 +60,8 @@ const currentRows = () => rows().filter((row) => row.getAttribute("aria-current"
 
 let scrollTo: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  window.localStorage.clear();
-  resetStoredMemory();
+  actions.saveLayers.mockReset();
+  actions.saveLayers.mockResolvedValue({ ok: true });
   scrollTo = vi.fn();
   Element.prototype.scrollTo = scrollTo as unknown as typeof Element.prototype.scrollTo;
   window.matchMedia = vi.fn().mockReturnValue({ matches: false }) as unknown as typeof window.matchMedia;
@@ -206,53 +214,62 @@ describe("TranscriptPanel layers", () => {
     expect(screen.getAllByRole("button", { name: /Jump to/ })).toHaveLength(3);
   });
 
-  it("applies stored layers after mount", async () => {
-    window.localStorage.setItem(
-      "instik:v1:arabic-egyptian:layers",
-      JSON.stringify({ script: true, tashkeel: false, transliteration: false, english: true }),
-    );
-    setup();
-    expect(await screen.findByText("Good morning!")).toBeTruthy();
+  it("starts from the layers saved on the account", () => {
+    setup(new FakeMedia(), view, undefined, { script: true, tashkeel: false, transliteration: false, english: true });
+    expect(screen.getByText("Good morning!")).toBeTruthy();
     expect(screen.getByText("صباح الخير!")).toBeTruthy();
     expect(screen.queryByText("ṣabāḥ el-khēr!")).toBeNull();
   });
 
-  it("falls back to the defaults for corrupt storage", () => {
-    window.localStorage.setItem("instik:v1:arabic-egyptian:layers", "{nope");
+  it("shows the defaults when the account has no saved layers", () => {
     setup();
     expect(screen.getByText("ṣabāḥ el-khēr!")).toBeTruthy();
     expect(screen.queryByText("Good morning!")).toBeNull();
   });
 
-  it("remembers a change for the next visit", async () => {
+  it("saves a change to the account for this language", async () => {
     setup();
     await act(async () => toggle("English"));
-    expect(JSON.parse(window.localStorage.getItem("instik:v1:arabic-egyptian:layers")!)).toMatchObject({ english: true });
+    expect(actions.saveLayers).toHaveBeenCalledWith({
+      languageCode: "arz",
+      layers: { script: true, tashkeel: true, transliteration: true, english: true },
+    });
   });
 
-  it("still works for the visit when localStorage throws", async () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("blocked");
-    });
+  it("never touches this device's storage", async () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
     setup();
     await act(async () => toggle("English"));
-    expect(screen.getByText("Good morning!")).toBeTruthy();
+    expect(setItem).not.toHaveBeenCalled();
     vi.restoreAllMocks();
   });
 
-  it("server-rendered HTML always shows the defaults, even with stored values", () => {
-    window.localStorage.setItem(
-      "instik:v1:arabic-egyptian:layers",
-      JSON.stringify({ script: false, tashkeel: false, transliteration: false, english: true }),
-    );
+  it("keeps the change on screen and shows a quiet note when saving fails, then clears it on the next save", async () => {
+    actions.saveLayers.mockRejectedValueOnce(new Error("offline"));
+    setup();
+    await act(async () => toggle("English"));
+    expect(screen.getByText("Good morning!")).toBeTruthy();
+    expect(screen.getByText("Couldn't save that just now. We'll try again on your next change.")).toBeTruthy();
+    await act(async () => toggle("Transliteration"));
+    expect(actions.saveLayers).toHaveBeenLastCalledWith({
+      languageCode: "arz",
+      layers: { script: true, tashkeel: true, transliteration: false, english: true },
+    });
+    expect(screen.queryByText(/Couldn't save that just now/)).toBeNull();
+  });
+
+  it("server-rendered HTML shows the layers from the account", () => {
     const html = renderToString(
       <PlaybackProvider>
-        <TranscriptPanel languageSlug="arabic-egyptian" language={language} view={view} />
+        <TranscriptPanel
+          language={language}
+          view={view}
+          initialLayers={{ script: false, tashkeel: false, transliteration: false, english: true }}
+        />
       </PlaybackProvider>,
     );
-    expect(html).toContain("صَباح الخَيْر!");
-    expect(html).toContain("ṣabāḥ el-khēr!");
-    expect(html).not.toContain("Good morning!");
+    expect(html).toContain("Good morning!");
+    expect(html).not.toContain("ṣabāḥ el-khēr!");
   });
 });
 

@@ -3,14 +3,16 @@
 import { useEffect, useRef } from "react";
 import { TargetText } from "@/components/TargetText";
 import { usePlayback } from "@/components/player/PlaybackProvider";
-import { useStoredValue } from "@/hooks/useStoredValue";
+import { useAccountAnswer } from "@/hooks/useAccountAnswer";
 import type { Language } from "@/lib/languages.schema";
-import { understoodKey, understoodSchema, type Understood } from "@/lib/player/preferences";
+import type { Understood } from "@/lib/player/preferences";
+import { SaveNote } from "./SaveNote";
 
 type Props = {
-  languageSlug: string;
   language: Language;
   videoSlug: string;
+  /** The learner's answer from their account, if they gave one. */
+  initialAnswer?: Understood;
 };
 
 const ANSWERS: { value: Understood; label: string }[] = [
@@ -19,16 +21,14 @@ const ANSWERS: { value: Understood; label: string }[] = [
   { value: "not-yet", label: "Not yet" },
 ];
 
-const optionalUnderstood = understoodSchema.optional();
-
-/** The optional "Did you follow this one?" check. No score; the answer stays on this device. */
-export function UnderstandingCheck({ languageSlug, language, videoSlug }: Props) {
+/** The optional "Did you follow this one?" check. No score; the answer is kept on the learner's account. */
+export function UnderstandingCheck({ language, videoSlug, initialAnswer }: Props) {
   const { registerCheck } = usePlayback();
-  const [answer, setAnswer] = useStoredValue<Understood | undefined>(
-    understoodKey(languageSlug, videoSlug),
-    optionalUnderstood,
-    undefined,
-  );
+  const [answer, setAnswer, saveFailed] = useAccountAnswer({
+    initial: initialAnswer,
+    languageCode: language.code,
+    videoSlug,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const firstRef = useRef<HTMLButtonElement>(null);
 
@@ -73,6 +73,7 @@ export function UnderstandingCheck({ languageSlug, language, videoSlug }: Props)
           );
         })}
       </div>
+      <SaveNote show={saveFailed} />
     </div>
   );
 }

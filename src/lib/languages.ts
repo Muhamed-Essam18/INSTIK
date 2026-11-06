@@ -13,3 +13,7 @@ export const defaultLanguage: Language = languages.find(isAvailable)!;
 export function getLanguageBySlug(slug: string): Language | undefined {
   return languages.find((l) => l.slug === slug);
 }
+
+export function getLanguageByCode(code: string): Language | undefined {
+  return languages.find((l) => l.code === code);
+}

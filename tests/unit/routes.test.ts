@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  addLanguagePath,
+  onboardingFinishPath,
+  settingsPath,
+  signInPath,
   donePath,
   hostPath,
   hostsPath,
@@ -18,6 +22,19 @@ describe("path builders", () => {
     expect(landingPath()).toBe("/");
     expect(onboardingPath()).toBe("/onboarding");
     expect(pricingPath()).toBe("/pricing");
+  });
+
+  it("builds account paths and encodes the return address", () => {
+    expect(onboardingPath("/learn/arabic-egyptian/watch/at-the-cafe")).toBe(
+      "/onboarding?returnTo=%2Flearn%2Farabic-egyptian%2Fwatch%2Fat-the-cafe",
+    );
+    expect(onboardingFinishPath()).toBe("/onboarding/finish");
+    expect(onboardingFinishPath("/settings")).toBe("/onboarding/finish?returnTo=%2Fsettings");
+    expect(signInPath()).toBe("/sign-in");
+    expect(signInPath("/settings")).toBe("/sign-in?returnTo=%2Fsettings");
+    expect(settingsPath()).toBe("/settings");
+    expect(addLanguagePath()).toBe("/settings/add-language");
+    expect(addLanguagePath("es", "/learn/spanish")).toBe("/settings/add-language?language=es&returnTo=%2Flearn%2Fspanish");
   });
 
   it("builds language-scoped paths", () => {

@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { defaultLanguage } from "@/lib/languages";
-import { libraryPath } from "@/lib/routes";
+import { Suspense } from "react";
+import { PageFallback } from "@/components/screens/PageFallback";
+import { RoadmapScreen } from "@/components/screens/RoadmapScreen";
 
 export const metadata: Metadata = { title: "Roadmap · Instik" };
 
-export default function RoadmapPage() {
+export default function RoadmapPage({ params }: { params: Promise<{ language: string }> }) {
   return (
-    <PlaceholderPage
-      title="Roadmap"
-      note="Your roadmap is on its way."
-      backHref={libraryPath(defaultLanguage.slug)}
-      backLabel="Back to the Library"
-    />
+    <Suspense fallback={<PageFallback />}>
+      <RoadmapScreen params={params} />
+    </Suspense>
   );
 }

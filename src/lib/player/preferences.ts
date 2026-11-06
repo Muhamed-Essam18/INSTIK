@@ -63,6 +63,36 @@ export function writeStored(key: string, value: unknown): void {
   listeners.forEach((listener) => listener());
 }
 
+/** Every key stored on this device or kept for this visit. Never throws. */
+export function listStoredKeys(): string[] {
+  const keys = new Set(memory.keys());
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key !== null) keys.add(key);
+    }
+  } catch {
+    // storage is unavailable: only this visit's copies exist
+  }
+  return [...keys];
+}
+
+/** Removes every stored value whose key matches, from both the in-memory copy and the device. Never throws. */
+export function removeStoredWhere(matches: (key: string) => boolean): void {
+  for (const key of [...memory.keys()]) if (matches(key)) memory.delete(key);
+  try {
+    const keys: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key !== null && matches(key)) keys.push(key);
+    }
+    keys.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // storage is unavailable: nothing was persisted there to remove
+  }
+  listeners.forEach((listener) => listener());
+}
+
 export function subscribeStored(listener: () => void): () => void {
   listeners.add(listener);
   window.addEventListener("storage", listener);

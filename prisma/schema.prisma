@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Stage {
+  HEAR_IT
+  FOLLOW_IT
+  UNDERSTAND_IT
+  JOIN_IN
+}
+
+enum Understood {
+  MOSTLY
+  SOME
+  NOT_YET
+}
+
+// Auth.js models (standard adapter shape). There is deliberately no password column.
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+
+  accounts  Account[]
+  sessions  Session[]
+  languages LearnerLanguage[]
+  answers   ComprehensionAnswer[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// One profile per learner per language. minutesPerDay is one of 10, 20, 30, 60 (checked in code).
+model LearnerLanguage {
+  id            String   @id @default(cuid())
+  userId        String
+  languageCode  String
+  stage         Stage
+  minutesPerDay Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preference Preference?
+
+  @@unique([userId, languageCode])
+  @@index([userId])
+}
+
+// Transcript layer toggles for one language profile. A missing row means "defaults".
+model Preference {
+  id                String   @id @default(cuid())
+  learnerLanguageId String   @unique
+  layers            Json
+  updatedAt         DateTime @updatedAt
+
+  learnerLanguage LearnerLanguage @relation(fields: [learnerLanguageId], references: [id], onDelete: Cascade)
+}
+
+// The current "Did you follow this one?" answer for one video. No score, no history.
+model ComprehensionAnswer {
+  id           String     @id @default(cuid())
+  userId       String
+  languageCode String
+  videoSlug    String
+  answer       Understood
+  updatedAt    DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, languageCode, videoSlug])
+  @@index([userId, languageCode])
+}
+
+// Bookkeeping for the sign-in link send limit; holds no learner content.
+model SignInAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}

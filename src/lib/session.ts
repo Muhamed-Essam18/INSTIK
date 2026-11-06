@@ -1,0 +1,41 @@
+import "server-only";
+import { redirect } from "next/navigation";
+import { cache } from "react";
+import { auth } from "@/auth";
+import { gateRedirect } from "@/lib/auth/gate";
+import { db } from "@/lib/db";
+import type { Profile } from "@/lib/learner/profile-rules";
+import { addLanguagePath } from "@/lib/routes";
+
+// The Data Access Layer. The proxy only checks that a session cookie exists; this is where the session is
+// looked up in the database and where pages and actions get the signed-in learner. Nothing else should call `auth()`.
+
+export type Learner = { id: string; email: string; name: string | null; image: string | null };
+
+/** The signed-in learner, or null. Cached for the request. */
+export const getLearner = cache(async (): Promise<Learner | null> => {
+  const user = (await auth())?.user;
+  if (!user?.id || !user.email) return null;
+  return { id: user.id, email: user.email, name: user.name ?? null, image: user.image ?? null };
+});
+
+/** The signed-in learner, or a redirect to where a signed-out visitor goes for `returnTo`, which they come back to. */
+export async function requireLearner(returnTo: string): Promise<Learner> {
+  const learner = await getLearner();
+  if (learner) return learner;
+  const [pathname, ...rest] = returnTo.split("?");
+  redirect(gateRedirect(pathname, rest.length ? `?${rest.join("?")}` : ""));
+}
+
+/** The learner and their profile for a language, or a redirect to add that language. */
+export async function requireProfile(
+  languageCode: string,
+  returnTo: string,
+): Promise<{ learner: Learner; profile: Profile }> {
+  const learner = await requireLearner(returnTo);
+  const row = await db().learnerLanguage.findUnique({
+    where: { userId_languageCode: { userId: learner.id, languageCode } },
+  });
+  if (!row) redirect(addLanguagePath(languageCode, returnTo));
+  return { learner, profile: { languageCode: row.languageCode, stage: row.stage, minutesPerDay: row.minutesPerDay } };
+}

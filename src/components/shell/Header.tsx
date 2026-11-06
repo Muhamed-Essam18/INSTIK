@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { landingPath, roadmapPath } from "@/lib/routes";
-import { AccountButton } from "./AccountButton";
 import { Container } from "./Container";
 import { HoursPill } from "./HoursPill";
 import { MainNav, MainNavFallback } from "./MainNav";
+import { UserSlot } from "./UserSlot";
 
 export function Header({ defaultSlug }: { defaultSlug: string }) {
   return (
@@ -21,7 +21,9 @@ export function Header({ defaultSlug }: { defaultSlug: string }) {
         </Suspense>
         <div className="grow" />
         <HoursPill href={roadmapPath(defaultSlug)} />
-        <AccountButton />
+        <Suspense fallback={<span className="size-11" aria-hidden="true" />}>
+          <UserSlot />
+        </Suspense>
       </Container>
     </header>
   );

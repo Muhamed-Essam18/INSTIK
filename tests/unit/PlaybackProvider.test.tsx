@@ -8,6 +8,7 @@ import { resetStoredMemory } from "@/lib/player/preferences";
 import { FakeMedia } from "../helpers/fake-media";
 import { router } from "../helpers/next-navigation";
 
+vi.mock("@/lib/learner/preference-actions", () => ({ saveAnswer: async () => ({ ok: true }), saveLayers: async () => ({ ok: true }) }));
 vi.mock("next/navigation", () => import("../helpers/next-navigation"));
 
 const language = getLanguageBySlug("arabic-egyptian")!;
@@ -25,7 +26,7 @@ const setup = (withCheck = true) => {
   render(
     <PlaybackProvider>
       <Registrar media={media} />
-      {withCheck ? <UnderstandingCheck languageSlug="arabic-egyptian" language={language} videoSlug="at-the-cafe" /> : null}
+      {withCheck ? <UnderstandingCheck language={language} videoSlug="at-the-cafe" /> : null}
     </PlaybackProvider>,
   );
   return media;
@@ -84,7 +85,7 @@ describe("PlaybackProvider, Autoplay next", () => {
     render(
       <PlaybackProvider nextHref={nextHref ?? undefined} nextSlug={nextHref ? "buying-bread-at-the-bakery" : undefined}>
         <Registrar media={media} />
-        <UnderstandingCheck languageSlug="arabic-egyptian" language={language} videoSlug="at-the-cafe" />
+        <UnderstandingCheck language={language} videoSlug="at-the-cafe" />
       </PlaybackProvider>,
     );
     return media;

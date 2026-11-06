@@ -23,6 +23,10 @@ Audience: adults studying on their own, English interface. Not for children, exa
 
 No admin panel in the MVP.
 
+### Design decision: utility screens
+
+Utility screens (sign-in, check email, sign-in error, settings with add language, and the account menu) are part of the MVP. They have no separate design and are built from the design system and the patterns in the approved screens.
+
 ## Brand behaviours the product must enforce
 
 - No infinite scroll. Lists end. Sessions end with "Done for today".

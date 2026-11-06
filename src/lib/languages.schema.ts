@@ -14,6 +14,8 @@ const languageSchema = z.object({
   name: z.string().min(1),
   variety: z.string().min(1).optional(),
   nativeName: z.string().min(1),
+  /** One line shown under the language name when choosing a language (onboarding). */
+  description: z.string().min(1).optional(),
   /** The learner-facing "Did you follow this one?" word in the target language (for example فاهم؟); optional. */
   understoodWord: z.string().min(1).optional(),
   script: z.enum(["arabic", "latin"], { error: 'expected "arabic" or "latin"' }),

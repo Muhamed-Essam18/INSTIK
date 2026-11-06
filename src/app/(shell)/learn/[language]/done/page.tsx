@@ -1,17 +1,14 @@
 import type { Metadata } from "next";
-import { PlaceholderPage } from "@/components/PlaceholderPage";
-import { defaultLanguage } from "@/lib/languages";
-import { roadmapPath } from "@/lib/routes";
+import { Suspense } from "react";
+import { DoneScreen } from "@/components/screens/DoneScreen";
+import { PageFallback } from "@/components/screens/PageFallback";
 
 export const metadata: Metadata = { title: "Done for today · Instik" };
 
-export default function DonePage() {
+export default function DonePage({ params }: { params: Promise<{ language: string }> }) {
   return (
-    <PlaceholderPage
-      title="Done for today"
-      note="That's enough for today. See you tomorrow."
-      backHref={roadmapPath(defaultLanguage.slug)}
-      backLabel="See your roadmap"
-    />
+    <Suspense fallback={<PageFallback />}>
+      <DoneScreen params={params} />
+    </Suspense>
   );
 }

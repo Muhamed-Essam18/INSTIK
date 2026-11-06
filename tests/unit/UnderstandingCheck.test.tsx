@@ -3,26 +3,28 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PlaybackProvider } from "@/components/player/PlaybackProvider";
 import { UnderstandingCheck } from "@/components/watch/UnderstandingCheck";
 import { getLanguageBySlug } from "@/lib/languages";
-import { resetStoredMemory } from "@/lib/player/preferences";
+import type { Understood } from "@/lib/player/preferences";
 
 vi.mock("next/navigation", () => import("../helpers/next-navigation"));
 
+const actions = vi.hoisted(() => ({ saveAnswer: vi.fn() }));
+vi.mock("@/lib/learner/preference-actions", () => ({ saveAnswer: actions.saveAnswer, saveLayers: vi.fn() }));
+
 const language = getLanguageBySlug("arabic-egyptian")!;
-const KEY = "instik:v1:arabic-egyptian:understood:at-the-cafe";
 
 beforeEach(() => {
-  window.localStorage.clear();
-  resetStoredMemory();
+  actions.saveAnswer.mockReset();
+  actions.saveAnswer.mockResolvedValue({ ok: true });
 });
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
 });
 
-const setup = (videoSlug = "at-the-cafe") =>
+const setup = (videoSlug = "at-the-cafe", initialAnswer?: Understood) =>
   render(
     <PlaybackProvider>
-      <UnderstandingCheck languageSlug="arabic-egyptian" language={language} videoSlug={videoSlug} />
+      <UnderstandingCheck language={language} videoSlug={videoSlug} initialAnswer={initialAnswer} />
     </PlaybackProvider>,
   );
 
@@ -52,31 +54,36 @@ describe("UnderstandingCheck", () => {
     await act(async () => fireEvent.click(answer("Not yet")));
     expect(pressed("Not yet")).toBe("true");
     expect(pressed("Mostly")).toBe("false");
-    expect(window.localStorage.getItem(KEY)).toBe('"not-yet"');
+    expect(actions.saveAnswer).toHaveBeenLastCalledWith({
+      languageCode: "arz",
+      videoSlug: "at-the-cafe",
+      answer: "not-yet",
+    });
   });
 
-  it("applies a stored answer for this video only", async () => {
-    window.localStorage.setItem(KEY, '"some"');
-    setup();
-    expect(await screen.findByRole("button", { name: "Some of it", pressed: true })).toBeTruthy();
+  it("starts from the answer saved on the account for this video", () => {
+    setup("at-the-cafe", "some");
+    expect(pressed("Some of it")).toBe("true");
     cleanup();
     setup("my-family");
     expect(pressed("Some of it")).toBe("false");
   });
 
-  it("ignores an invalid stored answer", () => {
-    window.localStorage.setItem(KEY, '"perfect"');
+  it("never touches this device's storage", async () => {
+    const setItem = vi.spyOn(Storage.prototype, "setItem");
     setup();
-    for (const name of ["Mostly", "Some of it", "Not yet"]) expect(pressed(name)).toBe("false");
+    await act(async () => fireEvent.click(answer("Mostly")));
+    expect(setItem).not.toHaveBeenCalled();
   });
 
-  it("still works for the visit when localStorage throws", async () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("blocked");
-    });
+  it("keeps the answer on screen and shows a quiet note when saving fails", async () => {
+    actions.saveAnswer.mockRejectedValueOnce(new Error("offline"));
     setup();
     await act(async () => fireEvent.click(answer("Mostly")));
     expect(pressed("Mostly")).toBe("true");
+    expect(screen.getByText("Couldn't save that just now. We'll try again on your next change.")).toBeTruthy();
+    await act(async () => fireEvent.click(answer("Some of it")));
+    expect(screen.queryByText(/Couldn't save that just now/)).toBeNull();
   });
 
   it("shows no score, total or streak", () => {

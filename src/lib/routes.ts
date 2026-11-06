@@ -5,7 +5,20 @@ export type Screen = {
 };
 
 export const landingPath = () => "/";
-export const onboardingPath = () => "/onboarding";
+const withReturnTo = (path: string, returnTo?: string) =>
+  returnTo ? `${path}?returnTo=${encodeURIComponent(returnTo)}` : path;
+
+export const onboardingPath = (returnTo?: string) => withReturnTo("/onboarding", returnTo);
+export const onboardingFinishPath = (returnTo?: string) => withReturnTo("/onboarding/finish", returnTo);
+export const signInPath = (returnTo?: string) => withReturnTo("/sign-in", returnTo);
+export const settingsPath = () => "/settings";
+export const addLanguagePath = (code?: string, returnTo?: string) => {
+  const params = new URLSearchParams();
+  if (code) params.set("language", code);
+  if (returnTo) params.set("returnTo", returnTo);
+  const query = params.toString();
+  return query ? `/settings/add-language?${query}` : "/settings/add-language";
+};
 export const pricingPath = () => "/pricing";
 export const libraryPath = (slug: string) => `/learn/${slug}`;
 export const watchPath = (slug: string) => `/learn/${slug}/watch`;
@@ -24,6 +37,9 @@ export const screens: readonly Screen[] = [
   { name: "Done for today", scope: "language", path: "/learn/[language]/done" },
   { name: "Roadmap", scope: "language", path: "/learn/[language]/roadmap" },
   { name: "Host", scope: "language", path: "/learn/[language]/hosts" },
+  { name: "Sign in", scope: "independent", path: "/sign-in" },
+  { name: "Settings", scope: "independent", path: "/settings" },
+  { name: "Add a language", scope: "independent", path: "/settings/add-language" },
 ];
 
 /** The slug for `/learn/<slug>` and `/learn/<slug>/...`, otherwise undefined. */
