@@ -1,6 +1,8 @@
 import type { ZodType } from "zod";
 import { glossarySchema, hostSchema, videoSchema, type Glossary, type Host, type Video } from "./schema";
-import { parseVtt, type Cue } from "./vtt";
+import { buildGlossaryIndex } from "./glossary-link";
+import { parseTranscript, type TranscriptLine } from "./transcript";
+import { parseVtt } from "./vtt";
 
 /** Files of one language folder, already read from disk. `file` is relative to the language folder. */
 export type RawContent = {
@@ -13,7 +15,7 @@ export type RawContent = {
 export type LanguageContent = {
   videos: Video[];
   hosts: Host[];
-  transcripts: Record<string, Cue[]>;
+  transcripts: Record<string, TranscriptLine[]>;
   glossary: Glossary;
 };
 
@@ -35,7 +37,7 @@ function formatPath(path: PropertyKey[]): string {
 export function validateLanguageContent(
   language: string,
   raw: RawContent | null,
-  options: { available: boolean },
+  options: { available: boolean; transcriptLayers: readonly string[] },
 ): LanguageContent {
   const empty: LanguageContent = { videos: [], hosts: [], transcripts: {}, glossary: { entries: [] } };
   const problems: string[] = [];
@@ -85,13 +87,16 @@ export function validateLanguageContent(
 
     // Files that failed their own checks still count as videos here, so one bad file reports one problem.
     const videoSlugs = new Set(raw.videos.map((v) => fileSlug(v.file)));
-    const transcripts: Record<string, Cue[]> = {};
+    const transcripts: Record<string, TranscriptLine[]> = {};
     for (const { file, text } of raw.transcripts) {
       const slug = fileSlug(file);
       if (!videoSlugs.has(slug)) problem(file, "video", `no video "${slug}" for this transcript`);
       const { cues, errors } = parseVtt(text);
       for (const error of errors) problem(file, "transcript", error);
-      if (errors.length === 0) transcripts[slug] = cues;
+      if (errors.length > 0) continue;
+      const parsed = parseTranscript(options.transcriptLayers, cues);
+      for (const error of parsed.errors) problem(file, "transcript", error);
+      if (parsed.errors.length === 0) transcripts[slug] = parsed.lines;
     }
 
     let glossary: Glossary = { entries: [] };
@@ -100,6 +105,7 @@ export function validateLanguageContent(
       const parsed = parse(raw.glossary.file, glossarySchema, raw.glossary.data);
       if (parsed) {
         glossary = parsed;
+        for (const error of buildGlossaryIndex(parsed.entries).errors) problem(raw.glossary.file, "word", error);
         duplicates(
           parsed.entries.map((e) => ({ file: raw.glossary!.file, value: e.id })),
           "id",

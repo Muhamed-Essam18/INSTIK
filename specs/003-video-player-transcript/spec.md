@@ -8,6 +8,13 @@
 
 **Input**: User description: "Spec 3: the video player and interactive transcript. Each video has its own player page; playback controls (play/pause, back 5 seconds, slower speeds, full screen) with the stage badge on the video; an interactive transcript built from the video's .vtt file that follows playback and jumps on click; transcript layer toggles remembered on this device; tap a word for its glossary entry; host card; the optional فاهم؟ check stored on this device; Up next with autoplay off by default. Out of scope: accounts, saving to a server, hours tracking."
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: What video should the player play for the sample content, since no real videos exist yet? → A: One short, clearly labelled sample clip is added to the repository and plays for every sample video; the real video host is plugged in later behind the same interface.
+- Q: When should the optional فاهم؟ check appear on the player page? → A: It stays visible from the start, as in the design; when the video ends the page scrolls it into view and moves focus to its first answer.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Watch a video with simple controls (Priority: P1)
@@ -105,7 +112,9 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 2. **Given** the check, **When** the learner picks an answer, **Then** it is shown as selected, and picking another changes it.
 3. **Given** a saved answer, **When** the learner returns to this video on this device, **Then** the same answer is selected.
 4. **Given** the learner never answers, **Then** nothing is blocked, no reminder appears, and no score or total is shown anywhere.
-5. **Given** the Arabic "فاهم؟" text, **Then** it is marked as Arabic (right-to-left, Arabic language) and shown in the Arabic interface font.
+5. **Given** a video that plays to its end, **When** it ends, **Then** the check is scrolled into view (instantly if the learner prefers reduced motion) and focus moves to its first answer; nothing else changes and no answer is chosen for the learner.
+6. **Given** the video ends while in full screen, **Then** the learner leaves full screen first, and the check is scrolled into view without forcing anything else.
+7. **Given** the Arabic "فاهم؟" text, **Then** it is marked as Arabic (right-to-left, Arabic language) and shown in the Arabic interface font.
 
 ---
 
@@ -142,6 +151,7 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 - The learner leaves the page while the word card is open or audio is playing: audio stops and nothing stays open.
 - Stored preferences are missing, corrupted or from an older format: defaults apply and the page works.
 - The video's play, pause and back controls are used by keyboard: each is a labelled control with visible focus and a target at least 44 pixels high.
+- The sample clip is shorter than the video's metadata length: the player's timer and progress bar use the clip, the length line uses the metadata, and the transcript lines all fall inside the clip.
 - Free versus full access is stored on each video but not enforced in this feature.
 - Narrow phone widths: controls wrap, nothing scrolls sideways, the transcript sits below the video.
 - Full screen is not supported by the device: the control is hidden or explains it is unavailable.
@@ -163,6 +173,7 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 - **FR-006**: The player MUST show elapsed and total time ("2:14 / 8:40") and a progress bar, and the learner MUST be able to seek by using the progress bar.
 - **FR-007**: The player MUST show a clear play control before playback starts and MUST NOT start playing by itself when the page opens.
 - **FR-008**: All player controls MUST be real, labelled controls usable by keyboard and screen reader, with visible focus, at least 44 pixels high, and state changes (playing or paused, speed, full screen) MUST be announced by the control's own label or state.
+- **FR-009a**: A video with no playback id yet MUST show a friendly placeholder ("This video is on its way.") instead of a player, with no controls, and the rest of the page (transcript, host card, check, Up next) MUST keep working.
 - **FR-009**: If the video cannot load or play, the page MUST show a short kind message and a link back to the Library, and the rest of the page MUST keep working.
 
 **Interactive transcript**
@@ -192,6 +203,7 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 **Understanding check**
 
 - **FR-025**: The page MUST show the optional فاهم؟ check with the question "Did you follow this one?", the note "No score. It just helps us pick what's up next.", and three answers: "Mostly", "Some of it", "Not yet".
+- **FR-025a**: The check MUST be visible on the page from the start, not only at the end. When the video ends, the page MUST scroll the check into view (instantly when reduced motion is preferred) and move keyboard focus to its first answer, without selecting any answer. If the video ends in full screen, the player MUST leave full screen first. When Autoplay next is on, the next video starts instead and the check is not scrolled or focused.
 - **FR-026**: The learner's answer MUST be stored on this device for that video and language, MUST be changeable, and MUST NOT be sent to a server. The check MUST never block anything, never show a score, total or streak, and never nag.
 - **FR-027**: The Arabic text "فاهم؟" MUST carry right-to-left direction and Arabic language attributes.
 
@@ -205,7 +217,7 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 
 - **FR-031**: Nothing in this feature may track watch time, count hours, record watch history, create accounts or send learner data to a server.
 - **FR-032**: Pages MUST work from phone to desktop widths without sideways scrolling, meet the project's contrast and focus standards, and keep learner copy in the brand voice. Internal level names MUST NOT appear.
-- **FR-033**: Reading, writing or failing to read stored preferences MUST NOT cause the page to differ between its first display and the display once it is interactive in a way that the learner can see as a flash of wrong content or that causes the browser to report a mismatch.
+- **FR-033**: Reading, writing or failing to read stored preferences MUST NOT make the first page the browser shows differ from what the server sent (no hydration mismatch, no console warning). The learner's remembered choices MAY be applied immediately after the page becomes interactive.
 
 ### Key Entities
 
@@ -234,11 +246,11 @@ Below the host card, an optional check asks "فاهم؟ Did you follow this one?
 
 ## Assumptions
 
-- Sample content has no real video yet, and the video host (Mux or Cloudflare Stream) is still undecided. Playback sits behind a thin interface; for sample content the player uses a clearly marked sample source so that every control can be tried and tested. The real source is wired in when the video host is chosen.
+- Sample content has no real video yet, and the video host (Mux or Cloudflare Stream) is still undecided. Playback sits behind a thin interface. Every sample video plays one short sample clip kept in the repository: made for the project (no third-party footage), small, visibly marked "Sample" on screen, and long enough to try every control. The sample transcripts' line times fit inside that clip. The page's length line and the cards still show each video's metadata length, so a sample video can show a longer length than its clip; the player's own timer shows the clip's real time. The real source is wired in when the video host is chosen.
 - The transcript files from the Content and Library spec only carry Arabic text, so this feature extends the transcript content so each line also carries transliteration, English and word links to the glossary. The two existing sample transcripts are updated to match, stay clearly marked as sample, and the glossary is extended to cover their words. Validation continues to fail the build on any bad file.
 - Tapping a word works in the Arabic script layer only; transliteration and English are not tappable.
 - Remembered choices (layers, understanding answers, autoplay) live only in the browser on this device, per language where it matters, and are replaced by account-based storage in a later spec. Clearing browser data clears them.
-- The understanding check is shown on the page as in the design rather than appearing only when playback ends; it is optional and unlocked at all times.
+- The understanding check is always on the page, as in the design, and is optional; the end of the video only brings it into view and focuses it (see Clarifications).
 - Speed options are 1× (normal), 0.9× and 0.75×; the chosen speed lasts for the current visit only and is not remembered.
 - Up next is chosen from other videos at the same stage in library order, starting after the current video and wrapping around. The choice is simple on purpose; smarter picks (using the understanding answer) come later.
 - Free versus full access is not enforced; accounts, pricing and access rules come later.

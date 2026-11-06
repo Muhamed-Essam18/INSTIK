@@ -17,8 +17,8 @@ describe("parseVtt", () => {
     const { cues, errors } = parseVtt(valid);
     expect(errors).toEqual([]);
     expect(cues).toEqual([
-      { start: 2, end: 5.5, text: "أهلا" },
-      { start: 5.5, end: 8, text: "ازيك؟" },
+      { start: 2, end: 5.5, text: "أهلا", line: 5 },
+      { start: 5.5, end: 8, text: "ازيك؟", line: 8 },
     ]);
   });
 

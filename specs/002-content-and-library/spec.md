@@ -125,7 +125,7 @@ The project ships clearly marked sample content for Egyptian Arabic so the Libra
 **Content files and validation**
 
 - **FR-001**: Content MUST live as files under a per-language folder: one metadata file per video, one timed-text transcript per video (optional per video), one glossary file, and one file per host.
-- **FR-002**: Each video file MUST carry title, slug, stage, topic, host, duration, access (free or full) and video playback id. The language and variety come from the folder and the language registry.
+- **FR-002**: Each video file MUST carry title, slug, stage, topic, host, duration, access (free or full) and, once the video is uploaded, a video playback id (optional until then; amended in spec 003). The language and variety come from the folder and the language registry.
 - **FR-003**: Each host file MUST carry name, Arabic name, story, topics and a photo reference (a placeholder is acceptable).
 - **FR-004**: All content MUST be validated during build. Any invalid content (missing or malformed fields, unknown stage or topic, access value not free or full, duplicate or mismatched slug, unknown host, orphan or malformed transcript, malformed glossary) MUST fail the build with a message that names the file and the problem.
 - **FR-005**: Stage values MUST be limited to Hear it, Follow it, Understand it and Join in. Internal content levels MUST NOT appear in learner-facing text or in content fields shown to learners.

@@ -14,3 +14,14 @@ export function normalizeForSearch(text: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+// Arabic vowel marks and Quranic annotation marks, plus tatweel (stretching).
+const TASHKEEL = /[ً-ٰٟۖ-ۭـ]/g;
+
+/**
+ * Removes tashkeel and tatweel for display and word matching. Unlike normalizeForSearch it does not
+ * decompose or fold letters, so أ إ آ ا stay distinct. Stored text is never altered.
+ */
+export function stripTashkeel(text: string): string {
+  return text.replace(TASHKEEL, "");
+}

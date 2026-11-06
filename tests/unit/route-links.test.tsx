@@ -15,7 +15,7 @@ import Roadmap from "@/app/(shell)/learn/[language]/roadmap/page";
 import { HostScreen } from "@/components/screens/HostScreen";
 
 const pathname = vi.hoisted(() => ({ value: "/" }));
-vi.mock("next/navigation", () => ({ usePathname: () => pathname.value }));
+vi.mock("next/navigation", () => ({ usePathname: () => pathname.value, useRouter: () => ({ push: () => {} }), notFound: () => { throw new Error("notFound"); } }));
 
 afterEach(cleanup);
 

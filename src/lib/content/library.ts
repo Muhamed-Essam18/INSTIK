@@ -1,6 +1,7 @@
 import { normalizeForSearch } from "../text/normalize";
 import { getHosts, getVideos } from "./index";
 import type { LibraryVideo } from "./search";
+import { getUpNext } from "./upnext";
 import { stageLabel } from "./taxonomy";
 
 /** Whole minutes, rounded down, at least 1 (8:40 shows as 8 min). */
@@ -23,4 +24,9 @@ export function getLibraryVideos(language: string): LibraryVideo[] {
       watched: false,
     };
   });
+}
+
+/** Up next for the player page: up to three other videos at the same stage. */
+export function getUpNextVideos(language: string, videoSlug: string): LibraryVideo[] {
+  return getUpNext(getLibraryVideos(language), videoSlug);
 }

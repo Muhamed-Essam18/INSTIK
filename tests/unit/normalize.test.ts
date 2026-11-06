@@ -38,3 +38,29 @@ describe("normalizeForSearch", () => {
     expect(input).toBe("سَلْمَى");
   });
 });
+
+import { stripTashkeel } from "@/lib/text/normalize";
+
+describe("stripTashkeel", () => {
+  it("removes vowel marks and tatweel", () => {
+    expect(stripTashkeel("سُخْنَة")).toBe("سخنة");
+    expect(stripTashkeel("كـــافيه")).toBe("كافيه");
+    expect(stripTashkeel("ًٰۭٟۖ")).toBe("");
+  });
+
+  it("leaves letters and punctuation alone, including the Arabic question mark", () => {
+    expect(stripTashkeel("فاهم؟ أهلاً!")).toBe("فاهم؟ أهلا!");
+  });
+
+  it("does not fold letter variants", () => {
+    for (const a of ["أ", "إ", "آ", "ا"]) expect(stripTashkeel(`${a}كل`)).toBe(`${a}كل`);
+    expect(stripTashkeel("مدرسة")).toBe("مدرسة");
+    expect(stripTashkeel("مستشفى")).toBe("مستشفى");
+  });
+
+  it("does not mutate its input", () => {
+    const input = "سَلْمَى";
+    stripTashkeel(input);
+    expect(input).toBe("سَلْمَى");
+  });
+});

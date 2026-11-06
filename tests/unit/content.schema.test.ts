@@ -35,6 +35,12 @@ describe("videoSchema", () => {
     expect(videoSchema.safeParse({ ...video, [key]: value }).success).toBe(false);
   });
 
+  it("allows a video with no playbackId (the player shows its placeholder)", () => {
+    const rest: Record<string, unknown> = { ...video };
+    delete rest.playbackId;
+    expect(videoSchema.safeParse(rest).success).toBe(true);
+  });
+
   it("rejects a missing field and unknown fields", () => {
     const rest: Record<string, unknown> = { ...video };
     delete rest.title;

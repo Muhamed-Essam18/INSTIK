@@ -27,7 +27,7 @@ The folder name equals a language `slug` in `content/languages.json`.
 | `host` | string | Required; MUST be the slug of an existing host |
 | `durationSeconds` | integer | Required; ≥ 1 |
 | `access` | `free` \| `full` | Required |
-| `playbackId` | string | Required, non-empty |
+| `playbackId` | string | Optional, non-empty when present (amended in spec 003: absent means the player shows a friendly placeholder) |
 | `sample` | boolean | Optional; `true` on shipped sample content |
 
 Derived: `minutes = max(1, floor(durationSeconds / 60))`; stage label from the taxonomy; language and variety from the language registry via the folder.

@@ -16,7 +16,7 @@ export const videoSchema = z.strictObject({
   host: slug,
   durationSeconds: z.int().min(1, "must be at least 1 second"),
   access: z.enum(["free", "full"]),
-  playbackId: text,
+  playbackId: text.optional(),
 });
 
 export const hostSchema = z.strictObject({

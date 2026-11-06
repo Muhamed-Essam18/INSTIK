@@ -29,6 +29,10 @@ app is built, and invalid content fails the build with a message naming the file
 Egyptian Arabic files are marked `sample`. See
 `specs/002-content-and-library/contracts/content-files.md` for the formats and an example of each.
 
+## Video playback
+
+Each video's `playbackId` (in its JSON file) chooses the source: an id starting with `sample-` plays the 30 s sample clip in `public/sample/sample-clip.mp4`; any other id is played through Mux (`@mux/mux-player-react`); no id shows a friendly placeholder. To change the sample clip, run `scripts/make-sample-clip.mjs` (its header says how to do it without installing ffmpeg). Transcript files have one line per layer in each cue; see `specs/003-video-player-transcript/contracts/transcript-files.md`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

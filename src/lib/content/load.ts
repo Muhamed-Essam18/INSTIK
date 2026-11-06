@@ -44,7 +44,7 @@ export function loadAllContent(): ReadonlyMap<string, LanguageContent> {
   return new Map(
     languages.map((language) => [
       language.slug,
-      validateLanguageContent(language.slug, readLanguageFolder(language.slug), { available: isAvailable(language) }),
+      validateLanguageContent(language.slug, readLanguageFolder(language.slug), { available: isAvailable(language), transcriptLayers: language.transcriptLayers }),
     ]),
   );
 }

@@ -1,4 +1,4 @@
-export type Cue = { start: number; end: number; text: string };
+export type Cue = { start: number; end: number; text: string; /** 1-based line of the cue timing in the file. */ line: number };
 
 export type VttResult = { cues: Cue[]; errors: string[] };
 
@@ -62,7 +62,7 @@ export function parseVtt(source: string): VttResult {
       errors.push(`line ${line}: cue text is empty`);
       continue;
     }
-    cues.push({ start: from, end: to, text: body });
+    cues.push({ start: from, end: to, text: body, line });
   }
 
   return { cues, errors };

@@ -22,15 +22,16 @@ const host = (slug: string, order: number, extra: Record<string, unknown> = {}) 
 const base = (): RawContent => ({
   videos: [video("one"), video("two")],
   hosts: [host("salma", 1), host("omar", 2)],
-  transcripts: [{ file: "videos/one.vtt", text: "WEBVTT\n\n00:00.000 --> 00:01.000\nhi\n" }],
+  transcripts: [{ file: "videos/one.vtt", text: "WEBVTT\n\n00:00.000 --> 00:01.000\nسلام\nsalam\nhi\n" }],
   glossary: {
     file: "glossary.json",
     data: { entries: [{ id: "a", word: "w", base: "b", transliteration: "t", english: "e" }] },
   },
 });
 
+const layers = ["script", "tashkeel", "transliteration", "english"];
 const check = (raw: RawContent | null, available = true) => () =>
-  validateLanguageContent("arabic-egyptian", raw, { available });
+  validateLanguageContent("arabic-egyptian", raw, { available, transcriptLayers: layers });
 
 describe("validateLanguageContent", () => {
   it("accepts valid content, sorted hosts, video without transcript", () => {
@@ -140,5 +141,40 @@ describe("validateLanguageContent", () => {
     raw.videos = [];
     raw.hosts = [];
     expect(check(raw)).toThrow(/at least one host[\s\S]*at least one video/);
+  });
+
+  it("fails when a transcript cue has the wrong number of lines, naming the file and line", () => {
+    const raw = base();
+    raw.transcripts = [{ file: "videos/one.vtt", text: "WEBVTT\n\n00:00.000 --> 00:01.000\nسلام\nsalam\n" }];
+    expect(check(raw)).toThrow(
+      /videos\/one\.vtt: transcript: line 3: expected 3 lines \(script, transliteration, english\), found 2/,
+    );
+  });
+
+  it("fails when the script line is a dash", () => {
+    const raw = base();
+    raw.transcripts = [{ file: "videos/one.vtt", text: "WEBVTT\n\n00:00.000 --> 00:01.000\n-\nsalam\nhi\n" }];
+    expect(check(raw)).toThrow(/videos\/one\.vtt: transcript: line 3: the script line/);
+  });
+
+  it("fails on glossary entries that differ only by tashkeel", () => {
+    const raw = base();
+    const entry = (id: string, word: string) => ({ id, word, base: word, transliteration: id, english: id });
+    raw.glossary = { file: "glossary.json", data: { entries: [entry("a", "سُخْنَة"), entry("b", "سَخْنَة")] } };
+    expect(check(raw)).toThrow(/glossary\.json: word: ambiguous "سخنة" in entries "a" and "b"/);
+  });
+
+  it("allows a video with no playbackId", () => {
+    const raw = base();
+    delete (raw.videos[0].data as Record<string, unknown>).playbackId;
+    expect(check(raw)).not.toThrow();
+  });
+
+  it("uses the language's own layers: two lines per cue for a two-layer language", () => {
+    const raw = base();
+    raw.transcripts = [{ file: "videos/one.vtt", text: "WEBVTT\n\n00:00.000 --> 00:01.000\nHola\nHello\n" }];
+    expect(() =>
+      validateLanguageContent("spanish", raw, { available: true, transcriptLayers: ["script", "english"] }),
+    ).not.toThrow();
   });
 });

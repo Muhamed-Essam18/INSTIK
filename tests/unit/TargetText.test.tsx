@@ -50,3 +50,19 @@ describe("TargetText", () => {
     expect(el(container).getAttribute("lang")).toBe("xx");
   });
 });
+
+describe("TargetText children and className", () => {
+  it("renders element children and appends an extra class", () => {
+    const { container } = render(
+      <TargetText language={arabic} className="block text-right">
+        <button>سخنة</button>
+        {" ."}
+      </TargetText>,
+    );
+    const span = container.firstElementChild as HTMLElement;
+    expect(span.querySelector("button")?.textContent).toBe("سخنة");
+    expect(span.className).toContain("block");
+    expect(span.className).toContain("text-right");
+    expect(span.className).toContain("font-arabic");
+  });
+});

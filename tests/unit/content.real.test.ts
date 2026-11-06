@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { getGlossary, getHosts, getTranscript, getVideo, getVideos } from "@/lib/content";
+import { getGlossary, getHosts, getTranscript, getTranscriptView, getVideo, getVideos } from "@/lib/content";
 import { stageLabel } from "@/lib/content/taxonomy";
 
 const language = "arabic-egyptian";
@@ -42,5 +42,30 @@ describe("shipped Egyptian Arabic sample content", () => {
 
   it("returns undefined for unknown videos", () => {
     expect(getVideo(language, "nope")).toBeUndefined();
+  });
+});
+
+describe("shipped transcripts, three-layer format", () => {
+  it("every line has script, transliteration and English, and all times fit the 30 s sample clip", () => {
+    for (const slug of ["my-family", "at-the-cafe"]) {
+      const lines = getTranscript(language, slug)!;
+      expect(lines.length).toBeGreaterThanOrEqual(3);
+      for (const line of lines) {
+        expect(line.script).toBeTruthy();
+        expect(line.transliteration).toBeTruthy();
+        expect(line.english).toBeTruthy();
+        expect(line.end).toBeLessThanOrEqual(30);
+      }
+    }
+  });
+
+  it("links the glossary words in the transcripts, leaves the rest plain, and glossary keys are unique", () => {
+    const view = getTranscriptView(language, "at-the-cafe")!;
+    const linked = view.lines.flatMap((l) => l.segments.filter((s) => s.entryId).map((s) => s.entryId));
+    expect(linked).toEqual(
+      expect.arrayContaining(["sabah", "kheir", "ayza", "ahwa-a", "men-fadlak", "bi-sukkar", "walla", "men-gheir", "sukkar", "shukran"]),
+    );
+    expect(view.lines[0].segments.map((s) => s.text).join("")).toBe(getTranscript(language, "at-the-cafe")![0].script);
+    for (const id of linked) expect(view.entries[id!]).toBeDefined();
   });
 });
