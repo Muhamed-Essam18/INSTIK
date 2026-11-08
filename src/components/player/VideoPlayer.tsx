@@ -3,10 +3,12 @@
 import type { MuxPlayerProps } from "@mux/mux-player-react";
 import MuxPlayer from "@mux/mux-player-react/lazy";
 import Link from "next/link";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useHydrated } from "@/hooks/useStoredValue";
 import { AUTOPLAY_NEXT_KEY } from "@/lib/player/preferences";
 import { resolveSource } from "@/lib/player/source";
+import { startPosition } from "@/lib/player/start-position";
 import { PlayerControls } from "./PlayerControls";
 import { usePlayback, type PlayableMedia } from "./PlaybackProvider";
 
@@ -25,12 +27,14 @@ const hideMuxControls = { "--controls": "none" } as MuxPlayerProps["style"];
 const badge = "absolute rounded-pill px-3 py-1.5 text-caption font-semibold text-ink";
 
 export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryHref }: Props) {
-  const { setMedia } = usePlayback();
+  const { setMedia, seekTo } = usePlayback();
   const source = resolveSource(playbackId);
   const hydrated = useHydrated();
   const [media, setLocalMedia] = useState<PlayableMedia | null>(null);
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   const [failed, setFailed] = useState(false);
+  const startParam = useSearchParams().get("t");
+  const startedAt = useRef(false);
 
   // Stable identities: React calls a changed ref callback with null and then the element on every render.
   const register = useCallback(
@@ -61,6 +65,23 @@ export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryH
     }
     if (requested === videoSlug) void Promise.resolve(media.play()).catch(() => {});
   }, [media, videoSlug]);
+
+  // "Keep watching" opens the video near where the learner stopped (`?t=`). A position beyond the video is ignored.
+  useEffect(() => {
+    if (!media || startedAt.current) return;
+    const apply = () => {
+      if (startedAt.current) return;
+      startedAt.current = true;
+      const seconds = startPosition(startParam, media.duration);
+      if (seconds > 0) seekTo(seconds);
+    };
+    if (Number.isFinite(media.duration) && media.duration > 0) {
+      apply();
+      return;
+    }
+    media.addEventListener("loadedmetadata", apply);
+    return () => media.removeEventListener("loadedmetadata", apply);
+  }, [media, startParam, seekTo]);
 
   return (
     <div

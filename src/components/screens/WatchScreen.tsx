@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ComingSoonNotice } from "@/components/ComingSoonNotice";
 import { PlaybackProvider } from "@/components/player/PlaybackProvider";
+import { WatchCounter } from "@/components/player/WatchCounter";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { TranscriptPanel } from "@/components/transcript/TranscriptPanel";
 import { HostCard } from "@/components/watch/HostCard";
@@ -13,7 +14,7 @@ import { getLanguageBySlug } from "@/lib/languages";
 import { formatLength } from "@/lib/player/format";
 import { watchAccess } from "@/lib/learner/profile-rules";
 import { getAnswer, getLayers } from "@/lib/learner/preferences";
-import { libraryPath, watchVideoPath } from "@/lib/routes";
+import { donePath, libraryPath, watchVideoPath } from "@/lib/routes";
 import { requireProfile } from "@/lib/session";
 
 /** Reads the language and video params, so it is rendered inside a Suspense boundary by the page. */
@@ -41,7 +42,12 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   const next = upNext[0];
 
   return (
-    <PlaybackProvider nextHref={next ? watchVideoPath(slug, next.slug) : undefined} nextSlug={next?.slug}>
+    <PlaybackProvider
+      nextHref={next ? watchVideoPath(slug, next.slug) : undefined}
+      nextSlug={next?.slug}
+      doneHref={donePath(slug)}
+    >
+      <WatchCounter languageCode={language.code} videoSlug={video.slug} />
       <div className="flex flex-wrap items-start gap-space-8">
         <section aria-label="Video" className="flex min-w-0 grow-[999] basis-[560px] flex-col gap-space-6">
           <VideoPlayer

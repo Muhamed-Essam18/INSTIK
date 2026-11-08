@@ -6,6 +6,48 @@ const fontToken = z.enum(["display", "sans", "arabic", "naskh"], {
 
 const layer = z.enum(["script", "tashkeel", "transliteration", "english"]);
 
+const estimateStage = z.enum(["HEAR_IT", "FOLLOW_IT", "UNDERSTAND_IT"], {
+  error: 'expected "HEAR_IT", "FOLLOW_IT" or "UNDERSTAND_IT"',
+});
+
+const ESTIMATE_ORDER = ["HEAR_IT", "FOLLOW_IT", "UNDERSTAND_IT"] as const;
+
+/**
+ * Hour estimates for the roadmap stages. `provisional` must be present: while the numbers are placeholders
+ * the file says so, and a final number cannot slip in unflagged. Join in has no estimate.
+ */
+const roadmapSchema = z
+  .object({
+    provisional: z.boolean({ error: "must say whether the estimates are provisional" }),
+    note: z.string().min(1, "must not be empty"),
+    stages: z
+      .array(z.object({ stage: estimateStage, upToHours: z.number().positive("must be above 0") }))
+      .min(1, "must not be empty"),
+  })
+  .superRefine((roadmap, ctx) => {
+    let previousIndex = -1;
+    let previousHours = 0;
+    for (const [i, entry] of roadmap.stages.entries()) {
+      const index = ESTIMATE_ORDER.indexOf(entry.stage);
+      if (index <= previousIndex) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["stages", i, "stage"],
+          message: `"${entry.stage}" is repeated or out of order (expected Hear it, Follow it, Understand it)`,
+        });
+      }
+      if (entry.upToHours <= previousHours) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["stages", i, "upToHours"],
+          message: "must be greater than the stage before it",
+        });
+      }
+      previousIndex = Math.max(previousIndex, index);
+      previousHours = Math.max(previousHours, entry.upToHours);
+    }
+  });
+
 const languageSchema = z.object({
   code: z.string().min(1),
   slug: z.string().refine((s) => /^[a-z0-9]+(-[a-z0-9]+)*$/.test(s), {
@@ -24,6 +66,8 @@ const languageSchema = z.object({
     error: 'expected "available" or "coming-soon"',
   }),
   fonts: z.object({ ui: fontToken, transcript: fontToken }),
+  /** Provisional hour estimates per stage; absent means the roadmap shows no "more hours" line. */
+  roadmap: roadmapSchema.optional(),
   transcriptLayers: z
     .array(layer)
     .min(1, "must not be empty")
@@ -69,6 +113,7 @@ export const languagesFileSchema = z
   });
 
 export type Language = z.infer<typeof languageSchema>;
+export type RoadmapEstimates = NonNullable<Language["roadmap"]>;
 export type FontToken = z.infer<typeof fontToken>;
 
 function formatPath(path: PropertyKey[]): string {

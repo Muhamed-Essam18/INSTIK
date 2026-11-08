@@ -16,12 +16,57 @@ import { HostScreen } from "@/components/screens/HostScreen";
 const pathname = vi.hoisted(() => ({ value: "/" }));
 // These pages need an account; here the learner is signed in with a profile.
 vi.mock("@/lib/session", () => ({
+  // Signed out for the header's hours pill and the Library's own progress; the protected pages below use requireProfile.
+  getLearner: async () => null,
   requireLearner: async () => ({ id: "u1", email: "a@example.com", name: null, image: null }),
   requireProfile: async (code: string) => ({
     learner: { id: "u1", email: "a@example.com", name: null, image: null },
     profile: { languageCode: code, stage: "HEAR_IT", minutesPerDay: 20 },
   }),
 }));
+// The Roadmap and Done pages read hours from the database; here they get a small, plausible view.
+vi.mock("@/lib/hours/queries", () => {
+  const rhythm = { weeks: Array.from({ length: 8 }, (_, w) => Array.from({ length: 7 }, (_, d) => ({ day: `2026-01-${String(w * 7 + d + 1).padStart(2, "0")}`, state: "rest", today: false }))), watchedDays: 0 };
+  return {
+    getHoursByLanguage: async () => ({}),
+    getRoadmapView: async () => ({
+      today: "2026-11-08",
+      timeZone: "UTC",
+      watchedSeconds: 3600,
+      addedMinutes: 0,
+      totalSeconds: 3600,
+      todaySeconds: 0,
+      videosToday: 0,
+      languageName: "Egyptian Arabic",
+      stage: "HEAR_IT",
+      states: [
+        { stage: "HEAR_IT", state: "here" },
+        { stage: "FOLLOW_IT", state: "next" },
+        { stage: "UNDERSTAND_IT", state: "later" },
+        { stage: "JOIN_IN", state: "later" },
+      ],
+      progress: 0.1,
+      moreHours: 29,
+      nextStage: "FOLLOW_IT",
+      hasEstimates: true,
+      rhythm,
+      entries: [],
+      minutesPerDay: 20,
+      remindersOn: false,
+      hourSound: false,
+    }),
+    getDoneView: async () => ({
+      languageName: "Egyptian Arabic",
+      todaySeconds: 1500,
+      videosToday: 2,
+      totalSeconds: 3600,
+      strip: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((label, i) => ({ day: `2026-11-0${i + 2}`, label, state: "rest", today: i === 6 })),
+    }),
+  };
+});
+vi.mock("@/lib/hours/actions", () => ({ addManualTime: async () => ({ ok: true }), removeManualTime: async () => ({ ok: true }), syncTimeZone: async () => ({ ok: true, changed: false }), recordHeartbeat: async () => ({ ok: false }), endOfVideo: async () => ({ ok: true, showDone: false }) }));
+vi.mock("@/lib/hours/settings-actions", () => ({ saveSessionSettings: async () => ({ ok: true }) }));
+vi.mock("@/lib/learner/actions", () => ({ updateProfile: async () => ({ ok: true }) }));
 vi.mock("@/lib/learner/preferences", () => ({
   getLayers: async () => ({ script: true, tashkeel: true, transliteration: true, english: false }),
   getAnswer: async () => undefined,
@@ -29,7 +74,7 @@ vi.mock("@/lib/learner/preferences", () => ({
 vi.mock("@/lib/learner/preference-actions", () => ({ saveLayers: async () => ({ ok: true }), saveAnswer: async () => ({ ok: true }) }));
 // The user slot reads the session on the server; here it is the signed-out link the header would show.
 vi.mock("@/components/shell/UserSlot", () => ({ UserSlot: () => <a href="/sign-in">Sign in</a> }));
-vi.mock("next/navigation", () => ({ usePathname: () => pathname.value, useRouter: () => ({ push: () => {} }), notFound: () => { throw new Error("notFound"); } }));
+vi.mock("next/navigation", () => ({ usePathname: () => pathname.value, useRouter: () => ({ push: () => {}, refresh: () => {} }), useSearchParams: () => new URLSearchParams(), notFound: () => { throw new Error("notFound"); } }));
 
 afterEach(cleanup);
 

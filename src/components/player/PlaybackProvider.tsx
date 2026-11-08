@@ -24,6 +24,11 @@ type PlaybackContextValue = {
   seekTo: (seconds: number) => void;
   /** The understanding check registers itself here so the end of the video can bring it into view; null clears it. */
   registerCheck: (container: HTMLElement | null, firstAnswer: HTMLElement | null) => void;
+  /**
+   * The watch counter registers what must finish before the video's end is handled: send the last counted time,
+   * then ask the server whether Done for today follows. Null clears it.
+   */
+  registerBeforeEnd: (fn: (() => Promise<{ showDone: boolean }>) | null) => void;
 };
 
 const PlaybackContext = createContext<PlaybackContextValue | null>(null);
@@ -33,14 +38,17 @@ type Props = {
   /** The first Up next video; with Autoplay next on, the end of this video opens it. Absent means there is none. */
   nextHref?: string;
   nextSlug?: string;
+  /** Where Done for today lives; the end of a video goes there when the server says the day's goal is reached. */
+  doneHref?: string;
 };
 
 /** Lets the player, transcript and other client islands share the media element while the page stays a Server Component. */
-export function PlaybackProvider({ children, nextHref, nextSlug }: Props) {
+export function PlaybackProvider({ children, nextHref, nextSlug, doneHref }: Props) {
   const router = useRouter();
   const [media, setMediaState] = useState<PlayableMedia | null>(null);
   const mediaRef = useRef<PlayableMedia | null>(null);
   const checkRef = useRef<{ container: HTMLElement; firstAnswer: HTMLElement } | null>(null);
+  const beforeEndRef = useRef<(() => Promise<{ showDone: boolean }>) | null>(null);
 
   const setMedia = useCallback((element: PlayableMedia | null) => {
     mediaRef.current = element;
@@ -55,10 +63,28 @@ export function PlaybackProvider({ children, nextHref, nextSlug }: Props) {
     checkRef.current = container && firstAnswer ? { container, firstAnswer } : null;
   }, []);
 
+  const registerBeforeEnd = useCallback((fn: (() => Promise<{ showDone: boolean }>) | null) => {
+    beforeEndRef.current = fn;
+  }, []);
+
   // At the end of the video, bring the understanding check into view and focus its first answer (selecting nothing).
   useEffect(() => {
     if (!media) return;
     const onEnded = async () => {
+      // One handler decides what follows a video: first the counter sends its last time and the server answers
+      // whether the day's goal is reached. Done for today wins over Autoplay next and over the check; a failure
+      // falls back to the usual behaviour.
+      let showDone = false;
+      try {
+        showDone = (await beforeEndRef.current?.())?.showDone ?? false;
+      } catch {
+        showDone = false;
+      }
+      if (showDone && doneHref) {
+        if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+        router.push(doneHref);
+        return;
+      }
       // With Autoplay next on (and something to play), open the next video instead of drawing attention to the check.
       if (nextHref && nextSlug && readStored(AUTOPLAY_KEY, autoplaySchema) === true) {
         try {
@@ -78,9 +104,12 @@ export function PlaybackProvider({ children, nextHref, nextSlug }: Props) {
     };
     media.addEventListener("ended", onEnded);
     return () => media.removeEventListener("ended", onEnded);
-  }, [media, nextHref, nextSlug, router]);
+  }, [media, nextHref, nextSlug, doneHref, router]);
 
-  const value = useMemo(() => ({ media, setMedia, seekTo, registerCheck }), [media, setMedia, seekTo, registerCheck]);
+  const value = useMemo(
+    () => ({ media, setMedia, seekTo, registerCheck, registerBeforeEnd }),
+    [media, setMedia, seekTo, registerCheck, registerBeforeEnd],
+  );
   return <PlaybackContext.Provider value={value}>{children}</PlaybackContext.Provider>;
 }
 

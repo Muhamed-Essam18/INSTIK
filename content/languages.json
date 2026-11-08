@@ -12,6 +12,15 @@
       "direction": "rtl",
       "status": "available",
       "fonts": { "ui": "arabic", "transcript": "naskh" },
+      "roadmap": {
+        "provisional": true,
+        "note": "Placeholder estimates until product decides",
+        "stages": [
+          { "stage": "HEAR_IT", "upToHours": 30 },
+          { "stage": "FOLLOW_IT", "upToHours": 100 },
+          { "stage": "UNDERSTAND_IT", "upToHours": 250 }
+        ]
+      },
       "transcriptLayers": ["script", "tashkeel", "transliteration", "english"]
     },
     {

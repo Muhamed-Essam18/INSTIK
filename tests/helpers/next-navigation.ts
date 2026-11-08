@@ -5,3 +5,6 @@ export const router = { push: vi.fn(), replace: vi.fn(), back: vi.fn(), forward:
 export const pathname = { value: "/" };
 export const useRouter = () => router;
 export const usePathname = () => pathname.value;
+/** Settable query string for `useSearchParams`. */
+export const searchParams = { value: new URLSearchParams() };
+export const useSearchParams = () => searchParams.value;

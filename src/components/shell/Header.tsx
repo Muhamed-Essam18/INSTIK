@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { landingPath, roadmapPath } from "@/lib/routes";
+import { landingPath } from "@/lib/routes";
 import { Container } from "./Container";
-import { HoursPill } from "./HoursPill";
+import { HoursPillFallback, HoursPillSlot } from "./HoursPillSlot";
 import { MainNav, MainNavFallback } from "./MainNav";
 import { UserSlot } from "./UserSlot";
 
@@ -20,7 +20,9 @@ export function Header({ defaultSlug }: { defaultSlug: string }) {
           <MainNav defaultSlug={defaultSlug} />
         </Suspense>
         <div className="grow" />
-        <HoursPill href={roadmapPath(defaultSlug)} />
+        <Suspense fallback={<HoursPillFallback defaultSlug={defaultSlug} />}>
+          <HoursPillSlot defaultSlug={defaultSlug} />
+        </Suspense>
         <Suspense fallback={<span className="size-11" aria-hidden="true" />}>
           <UserSlot />
         </Suspense>

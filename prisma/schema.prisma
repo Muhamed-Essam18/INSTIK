@@ -28,11 +28,18 @@ model User {
   emailVerified DateTime?
   image         String?
   createdAt     DateTime  @default(now())
+  // Honest hours: the learner's IANA time zone (days are placed in it), and two personal settings.
+  timeZone      String?
+  remindersOn   Boolean   @default(false)
+  hourSound     Boolean   @default(false)
 
-  accounts  Account[]
-  sessions  Session[]
-  languages LearnerLanguage[]
-  answers   ComprehensionAnswer[]
+  accounts      Account[]
+  sessions      Session[]
+  languages     LearnerLanguage[]
+  answers       ComprehensionAnswer[]
+  watchSessions WatchSession[]
+  manualTimes   ManualTime[]
+  videoProgress VideoProgress[]
 }
 
 model Account {
@@ -76,13 +83,22 @@ model VerificationToken {
 
 // One profile per learner per language. minutesPerDay is one of 10, 20, 30, 60 (checked in code).
 model LearnerLanguage {
-  id            String   @id @default(cuid())
-  userId        String
-  languageCode  String
-  stage         Stage
-  minutesPerDay Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String    @id @default(cuid())
+  userId          String
+  languageCode    String
+  stage           Stage
+  minutesPerDay   Int
+  // Honest hours: end of the last accepted counted interval, and the budget for late (queued) intervals.
+  countedUntil    DateTime?
+  lateWindowStart DateTime?
+  lateSeconds     Int       @default(0)
+  // Highest whole hour already announced with the chime; never decreases.
+  chimedHours     Int       @default(0)
+  // Goal-sized blocks already acknowledged with Done for today on `doneDay`.
+  doneDay         DateTime? @db.Date
+  doneBlocks      Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   preference Preference?
@@ -123,4 +139,50 @@ model SignInAttempt {
   createdAt DateTime @default(now())
 
   @@index([key, createdAt])
+}
+
+// Counted watching for one learner, language and video on one local day. Heartbeats add to `seconds`.
+model WatchSession {
+  id           String   @id @default(cuid())
+  userId       String
+  languageCode String
+  videoSlug    String
+  day          DateTime @db.Date
+  seconds      Int
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, languageCode, videoSlug, day])
+  @@index([userId, languageCode, day])
+}
+
+// Time the learner says they spent outside Instik. Always shown as "Added by you". minutes is 1 to 600 (checked in code).
+model ManualTime {
+  id           String   @id @default(cuid())
+  userId       String
+  languageCode String
+  day          DateTime @db.Date
+  minutes      Int
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, languageCode, day])
+}
+
+// Where the learner is in one video. Drives "pick up where you left off" and the Watched label.
+model VideoProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  languageCode    String
+  videoSlug       String
+  positionSeconds Int
+  watched         Boolean  @default(false)
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, languageCode, videoSlug])
+  @@index([userId, languageCode, updatedAt])
 }
