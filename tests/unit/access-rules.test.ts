@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
 }));
 
+vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({ db: () => ({ learnerLanguage: { findUnique: mocks.findUnique } }) }));
 vi.mock("next/navigation", () => ({

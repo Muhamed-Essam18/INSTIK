@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   headers: vi.fn(),
 }));
 
+vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("@/auth", () => ({ auth: mocks.auth, signIn: mocks.signIn, signOut: vi.fn() }));
 vi.mock("@/lib/db", () => ({ db: () => mocks.db }));
 vi.mock("@/lib/env", () => ({ env: () => ({ IP_HASH_SALT: "s".repeat(16) }) }));

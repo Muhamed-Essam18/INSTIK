@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { auth } from "@/auth";
 import { gateRedirect } from "@/lib/auth/gate";
@@ -14,6 +15,9 @@ export type Learner = { id: string; email: string; name: string | null; image: s
 
 /** The signed-in learner, or null. Cached for the request. */
 export const getLearner = cache(async (): Promise<Learner | null> => {
+  // Auth.js generates random values before it reads the request, which cannot happen while prerendering.
+  // Waiting for the request first keeps that work out of the static shell; callers sit behind Suspense.
+  await connection();
   const user = (await auth())?.user;
   if (!user?.id || !user.email) return null;
   return { id: user.id, email: user.email, name: user.name ?? null, image: user.image ?? null };
