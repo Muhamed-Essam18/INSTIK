@@ -20,6 +20,11 @@ export const addLanguagePath = (code?: string, returnTo?: string) => {
   return query ? `/settings/add-language?${query}` : "/settings/add-language";
 };
 export const pricingPath = () => "/pricing";
+export const aboutPath = () => "/about";
+export const privacyPath = () => "/privacy";
+export const howItWorksPath = () => "/#how-it-works";
+/** The waitlist on the landing page, with a language preselected when `code` is given. */
+export const waitlistPath = (code?: string) => (code ? `/?language=${encodeURIComponent(code)}#waitlist` : "/#waitlist");
 export const libraryPath = (slug: string) => `/learn/${slug}`;
 export const watchPath = (slug: string) => `/learn/${slug}/watch`;
 export const watchVideoPath = (slug: string, video: string) => `/learn/${slug}/watch/${video}`;
@@ -32,6 +37,8 @@ export const screens: readonly Screen[] = [
   { name: "Landing", scope: "independent", path: "/" },
   { name: "Onboarding", scope: "independent", path: "/onboarding" },
   { name: "Pricing", scope: "independent", path: "/pricing" },
+  { name: "About", scope: "independent", path: "/about" },
+  { name: "Privacy", scope: "independent", path: "/privacy" },
   { name: "Library", scope: "language", path: "/learn/[language]" },
   { name: "Player", scope: "language", path: "/learn/[language]/watch" },
   { name: "Done for today", scope: "language", path: "/learn/[language]/done" },

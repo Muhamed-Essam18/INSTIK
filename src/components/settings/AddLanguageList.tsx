@@ -6,6 +6,7 @@ import { languageName } from "@/components/onboarding/LanguageStep";
 import type { OfferState } from "@/lib/learner/profile-rules";
 import type { Language } from "@/lib/languages.schema";
 import { languageStep } from "@/lib/onboarding/copy";
+import { waitlistPath } from "@/lib/routes";
 
 type Props = {
   offers: ReadonlyArray<{ language: Language; state: OfferState }>;
@@ -45,7 +46,7 @@ export function AddLanguageList({ offers, value, onChoose }: Props) {
               <span className="text-label">{state === "added" ? "Added" : languageStep.comingLater}</span>
             </span>
             {state === "waitlist" && (
-              <Link href={languageStep.waitlistHref} className="inline-flex min-h-11 items-center text-label underline">
+              <Link href={waitlistPath(language.code)} className="inline-flex min-h-11 items-center text-label underline">
                 {languageStep.waitlist}
               </Link>
             )}

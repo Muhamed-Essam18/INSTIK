@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
 // Public pages (landing, Library, hosts, pricing) must stay static and open to everyone. Reading the session in
@@ -11,8 +11,8 @@ function sourceFiles(path: string): string[] {
 }
 
 const publicSources = [
-  "src/app/(shell)/page.tsx",
-  "src/app/(shell)/pricing",
+  "src/app/(marketing)",
+  "src/components/marketing",
   "src/app/(shell)/learn/[language]/page.tsx",
   "src/app/(shell)/learn/[language]/hosts",
   "src/components/screens/LibraryScreen.tsx",
@@ -21,12 +21,17 @@ const publicSources = [
   "src/components/host",
 ].flatMap(sourceFiles);
 
+// The only marketing files that may read the session: the call to action and the header's log-in link, each behind
+// its own Suspense boundary with a signed-out fallback, so the pages themselves stay static.
+const mayReadSession = ["StartLink.tsx", "LogInSlot.tsx"];
+const checked = publicSources.filter((file) => !mayReadSession.some((name) => file.endsWith(`marketing${sep}${name}`)));
+
 describe("public pages", () => {
   it("find the files to check", () => {
     expect(publicSources.length).toBeGreaterThan(8);
   });
 
-  it.each(publicSources)("%s does not read the session, auth or the database", (file) => {
+  it.each(checked)("%s does not read the session, auth or the database", (file) => {
     expect(readFileSync(file, "utf8")).not.toMatch(/@\/lib\/session|@\/auth["']|@\/lib\/db/);
   });
 });

@@ -9,8 +9,6 @@ export const languageStep = {
   comingLater: "Coming later",
   waitlist: "Join the waitlist",
   somethingElse: { name: "Something else", note: "Tell us which one you'd like next" },
-  /** Where "Join the waitlist" goes: the waitlist section of the landing page. */
-  waitlistHref: "/#waitlist",
 } as const;
 
 /** The language name as the learner reads it, for example "Egyptian Arabic". */

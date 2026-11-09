@@ -5,8 +5,11 @@ import { ShellFrame } from "@/components/shell/ShellFrame";
 import { getHosts, getVideos } from "@/lib/content";
 import { languages } from "@/lib/languages";
 
-import Landing from "@/app/(shell)/page";
-import Pricing from "@/app/(shell)/pricing/page";
+import Landing from "@/app/(marketing)/page";
+import About from "@/app/(marketing)/about/page";
+import Pricing from "@/app/(marketing)/pricing/page";
+import Privacy from "@/app/(marketing)/privacy/page";
+import { MarketingFrame } from "@/components/marketing/MarketingFrame";
 import { LibraryScreen } from "@/components/screens/LibraryScreen";
 import { WatchScreen } from "@/components/screens/WatchScreen";
 import { DoneScreen } from "@/components/screens/DoneScreen";
@@ -72,6 +75,15 @@ vi.mock("@/lib/learner/preferences", () => ({
   getAnswer: async () => undefined,
 }));
 vi.mock("@/lib/learner/preference-actions", () => ({ saveLayers: async () => ({ ok: true }), saveAnswer: async () => ({ ok: true }) }));
+// The marketing call to action and log-in link read the session on the server; here they are the signed-out links.
+vi.mock("@/components/marketing/StartLink", () => ({
+  StartCta: ({ className, children }: { className: string; children: React.ReactNode }) => (
+    <a href="/onboarding" className={className}>
+      {children}
+    </a>
+  ),
+}));
+vi.mock("@/components/marketing/LogInSlot", () => ({ LogInSlot: () => <a href="/sign-in">Log in</a> }));
 // The user slot reads the session on the server; here it is the signed-out link the header would show.
 vi.mock("@/components/shell/UserSlot", () => ({ UserSlot: () => <a href="/sign-in">Sign in</a> }));
 vi.mock("next/navigation", () => ({ usePathname: () => pathname.value, useRouter: () => ({ push: () => {}, refresh: () => {} }), useSearchParams: () => new URLSearchParams(), notFound: () => { throw new Error("notFound"); } }));
@@ -88,6 +100,8 @@ const pages: Record<string, () => ReactElement | Promise<ReactElement>> = {
   // Onboarding and sign-in read the session and query string on the server; their links are not needed here.
   "/onboarding": () => <div />,
   "/pricing": Pricing,
+  "/about": About,
+  "/privacy": Privacy,
   "/sign-in": () => <div />,
   [`/learn/${slug}`]: () => LibraryScreen(params({ language: slug })),
   [`/learn/${slug}/done`]: () => DoneScreen(params({ language: slug })),
@@ -107,11 +121,15 @@ const pages: Record<string, () => ReactElement | Promise<ReactElement>> = {
   ),
 };
 
+const marketingPaths = new Set(["/", "/pricing", "/about", "/privacy"]);
+
 async function hrefsOn(path: string): Promise<string[]> {
   pathname.value = path;
   const page = await pages[path]();
-  const { container } = render(<ShellFrame>{page}</ShellFrame>);
-  const hrefs = [...container.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")!);
+  const Frame = marketingPaths.has(path) ? MarketingFrame : ShellFrame;
+  const { container } = render(<Frame>{page}</Frame>);
+  // Anchors and query strings point at the same page, so only the path is compared.
+  const hrefs = [...container.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")!.split(/[?#]/)[0] || "/");
   cleanup();
   return hrefs.filter((h) => h.startsWith("/"));
 }

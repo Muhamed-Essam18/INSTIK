@@ -5,6 +5,7 @@ import { ChoiceGroup } from "./ChoiceGroup";
 import type { Language } from "@/lib/languages.schema";
 import { languagesToOffer } from "@/lib/learner/profile-rules";
 import { languageStep } from "@/lib/onboarding/copy";
+import { waitlistPath } from "@/lib/routes";
 
 const rowClass = "flex items-center gap-space-4 rounded-lg bg-paper/50 px-space-6 py-space-4 text-slate";
 
@@ -44,7 +45,7 @@ export function LanguageStep({ languages, value, onChoose }: Props) {
             <span className="text-heading font-semibold text-ink">{languageName(language)}</span>
             <span className="text-label">{languageStep.comingLater}</span>
           </span>
-          <Link href={languageStep.waitlistHref} className="inline-flex min-h-11 items-center text-label underline">
+          <Link href={waitlistPath(language.code)} className="inline-flex min-h-11 items-center text-label underline">
             {languageStep.waitlist}
           </Link>
         </div>
@@ -54,7 +55,7 @@ export function LanguageStep({ languages, value, onChoose }: Props) {
           <span className="text-heading font-semibold text-ink">{languageStep.somethingElse.name}</span>
           <span className="text-label">{languageStep.somethingElse.note}</span>
         </span>
-        <Link href={languageStep.waitlistHref} className="inline-flex min-h-11 items-center text-label underline">
+        <Link href={waitlistPath("other")} className="inline-flex min-h-11 items-center text-label underline">
           {languageStep.waitlist}
         </Link>
       </div>

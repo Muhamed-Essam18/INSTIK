@@ -33,6 +33,17 @@
       "status": "coming-soon",
       "fonts": { "ui": "sans", "transcript": "sans" },
       "transcriptLayers": ["script", "english"]
+    },
+    {
+      "code": "fr",
+      "slug": "french",
+      "name": "French",
+      "nativeName": "Français",
+      "script": "latin",
+      "direction": "ltr",
+      "status": "coming-soon",
+      "fonts": { "ui": "sans", "transcript": "sans" },
+      "transcriptLayers": ["script", "english"]
     }
   ]
 }

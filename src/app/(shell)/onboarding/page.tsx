@@ -11,7 +11,7 @@ import { listProfiles } from "@/lib/learner/profiles";
 import { languageSlugFromPathname, libraryPath } from "@/lib/routes";
 import { getLearner } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Get started · Instik" };
+export const metadata: Metadata = { title: "Get started · Instik", robots: { index: false } };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

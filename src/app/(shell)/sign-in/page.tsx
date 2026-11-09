@@ -9,7 +9,7 @@ import { defaultLanguage } from "@/lib/languages";
 import { libraryPath, onboardingPath } from "@/lib/routes";
 import { getLearner } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Sign in · Instik" };
+export const metadata: Metadata = { title: "Sign in · Instik", robots: { index: false } };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

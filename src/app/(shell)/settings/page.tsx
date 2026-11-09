@@ -7,7 +7,7 @@ import { listProfiles } from "@/lib/learner/profiles";
 import { addLanguagePath, settingsPath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Settings · Instik" };
+export const metadata: Metadata = { title: "Settings · Instik", robots: { index: false } };
 
 /** Reads the session, so it renders behind a Suspense boundary. */
 async function SettingsContent() {

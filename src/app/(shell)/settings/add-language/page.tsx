@@ -9,7 +9,7 @@ import { listProfiles } from "@/lib/learner/profiles";
 import { addLanguagePath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Add a language · Instik" };
+export const metadata: Metadata = { title: "Add a language · Instik", robots: { index: false } };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

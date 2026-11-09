@@ -54,7 +54,7 @@ describe("OnboardingFlow", () => {
     expect(screen.queryByRole("radio", { name: /Spanish/ })).toBeNull();
     const links = screen.getAllByRole("link", { name: "Join the waitlist" });
     expect(links).toHaveLength(2); // Spanish and "Something else"
-    for (const link of links) expect(link.getAttribute("href")).toBe("/#waitlist");
+    expect(links.map((l) => l.getAttribute("href"))).toEqual(["/?language=es#waitlist", "/?language=other#waitlist"]);
     expect(screen.getByText("Something else")).toBeTruthy();
   });
 

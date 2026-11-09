@@ -16,7 +16,7 @@ function messageFor(data: unknown): string {
 
 describe("languages schema", () => {
   it("accepts the shipped file", () => {
-    expect(parseLanguagesFile(raw)).toHaveLength(2);
+    expect(parseLanguagesFile(raw)).toHaveLength(3);
   });
 
   it("reports a missing field", () => {

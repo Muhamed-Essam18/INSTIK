@@ -132,7 +132,7 @@ model ComprehensionAnswer {
   @@index([userId, languageCode])
 }
 
-// Bookkeeping for the sign-in link send limit; holds no learner content.
+// Bookkeeping for the sign-in link and waitlist send limits (keyed by a salted hash); holds no learner content.
 model SignInAttempt {
   id        String   @id @default(cuid())
   key       String
@@ -185,4 +185,15 @@ model VideoProgress {
 
   @@unique([userId, languageCode, videoSlug])
   @@index([userId, languageCode, updatedAt])
+}
+
+// One visitor's request to hear about one language. The email is trimmed and lower-cased before saving.
+model WaitlistEntry {
+  id           String   @id @default(cuid())
+  languageCode String
+  email        String
+  createdAt    DateTime @default(now())
+
+  @@unique([languageCode, email])
+  @@index([languageCode])
 }

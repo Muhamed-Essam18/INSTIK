@@ -34,7 +34,7 @@ describe("AddLanguageList", () => {
   it("shows unavailable languages with a link to the waitlist", () => {
     render(<AddLanguageList offers={offers} value={undefined} onChoose={() => {}} />);
     const link = screen.getByRole("link", { name: "Join the waitlist" });
-    expect(link.getAttribute("href")).toBe("/#waitlist");
+    expect(link.getAttribute("href")).toBe("/?language=es#waitlist");
     expect(screen.queryByRole("radio", { name: /Spanish/ })).toBeNull();
   });
 
