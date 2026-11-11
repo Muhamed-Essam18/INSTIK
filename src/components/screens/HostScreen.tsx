@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import { HostHero } from "@/components/host/HostHero";
+import { HostVideoList } from "@/components/host/HostVideoList";
 import { OtherHosts } from "@/components/host/OtherHosts";
-import { VideoCard } from "@/components/library/VideoCard";
+import { HostVideos } from "@/components/screens/HostVideos";
 import { getHost, getHosts, getVideosByHost } from "@/lib/content";
 import { getLibraryVideos } from "@/lib/content/library";
 import { getLanguageBySlug } from "@/lib/languages";
@@ -31,17 +33,10 @@ export async function HostScreen({ params }: { params: Promise<{ language: strin
         <h2 id="host-videos" className="m-0 font-display text-[28px] leading-[34px] font-extrabold">
           Videos with {host.name}
         </h2>
-        {videos.length ? (
-          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-5 p-0">
-            {videos.map((video, i) => (
-              <li key={video.slug} className="flex flex-col">
-                <VideoCard languageSlug={slug} video={video} tone={i} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="m-0 text-body text-slate">{host.name}&apos;s first videos are on the way.</p>
-        )}
+        {/* The plain list is the static part; a signed-in learner's "Full access" markers arrive with the Suspense part. */}
+        <Suspense fallback={<HostVideoList languageSlug={slug} hostName={host.name} videos={videos} />}>
+          <HostVideos languageSlug={slug} hostName={host.name} videos={videos} />
+        </Suspense>
       </section>
 
       <OtherHosts languageSlug={slug} hosts={hosts.filter((h) => h.slug !== host.slug)} />

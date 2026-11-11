@@ -16,6 +16,7 @@ const video = (slug: string, title: string, host: string): LibraryVideo => ({
   hostSlug: host.toLowerCase(),
   searchKey: slug,
   watched: false,
+  access: "free",
 });
 
 const closing = "That's all for Up next. Pick one when you're ready, or finish for today.";

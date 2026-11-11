@@ -44,7 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${nunito.variable} ${inter.variable} ${plexArabic.variable} ${naskh.variable} antialiased`}
     >
-      <body className="flex min-h-screen flex-col">{children}</body>
+      <body className="flex min-h-screen flex-col" suppressHydrationWarning>{children}</body>
     </html>
   );
 }

@@ -19,6 +19,7 @@ function make(slug: string, title: string, titleAr: string, stage: StageSlug, st
     hostSlug: host.toLowerCase(),
     searchKey: normalizeForSearch(`${title} ${titleAr} ${host}`),
     watched: false,
+    access: "free",
   };
 }
 

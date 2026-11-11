@@ -16,6 +16,7 @@ const video: LibraryVideo = {
   hostSlug: "salma",
   searchKey: "at the cafe salma",
   watched: false,
+  access: "free",
 };
 
 describe("VideoCard", () => {

@@ -20,6 +20,10 @@ export const addLanguagePath = (code?: string, returnTo?: string) => {
   return query ? `/settings/add-language?${query}` : "/settings/add-language";
 };
 export const pricingPath = () => "/pricing";
+export type BillingPeriod = "monthly" | "yearly";
+export const billingStartPath = (period: BillingPeriod) => `/billing/start?period=${period}`;
+export const billingPortalPath = (flow?: "cancel") => (flow ? `/billing/portal?flow=${flow}` : "/billing/portal");
+export const billingReturnPath = () => "/billing/return";
 export const aboutPath = () => "/about";
 export const privacyPath = () => "/privacy";
 export const howItWorksPath = () => "/#how-it-works";

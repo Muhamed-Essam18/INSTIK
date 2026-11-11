@@ -19,6 +19,8 @@ type Props = {
   title: string;
   stageLabel: string;
   libraryHref: string;
+  /** Short-lived tokens for a full-access video (signed playback), made on the server after the access check. */
+  playbackTokens?: { playback: string; thumbnail: string; storyboard: string };
 };
 
 // Mux's own controls are hidden; PlayerControls drives the element so every source looks and works the same.
@@ -26,7 +28,7 @@ const hideMuxControls = { "--controls": "none" } as MuxPlayerProps["style"];
 
 const badge = "absolute rounded-pill px-3 py-1.5 text-caption font-semibold text-ink";
 
-export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryHref }: Props) {
+export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryHref, playbackTokens }: Props) {
   const { setMedia, seekTo } = usePlayback();
   const source = resolveSource(playbackId);
   const hydrated = useHydrated();
@@ -104,6 +106,7 @@ export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryH
         <MuxPlayer
           ref={registerMux}
           playbackId={source.playbackId}
+          tokens={playbackTokens}
           streamType="on-demand"
           playsInline
           nohotkeys
@@ -125,7 +128,21 @@ export function VideoPlayer({ playbackId, videoSlug, title, stageLabel, libraryH
 
       {failed ? (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink px-6 text-center text-cream">
-          <p className="m-0 text-body-lg">This video didn&apos;t load. Try again in a moment.</p>
+          {playbackTokens ? (
+            <>
+              {/* A signed video that stops loading has most likely outlived its token (a long pause): a reload gets a new one. */}
+              <p className="m-0 text-body-lg">Reload the page to keep watching.</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="inline-flex min-h-11 items-center text-label text-cream underline"
+              >
+                Reload
+              </button>
+            </>
+          ) : (
+            <p className="m-0 text-body-lg">This video didn&apos;t load. Try again in a moment.</p>
+          )}
           <Link href={libraryHref} className="inline-flex min-h-11 items-center text-label text-cream underline hover:text-cream">
             Back to the Library
           </Link>

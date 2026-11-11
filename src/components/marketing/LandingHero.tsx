@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { languageName } from "@/lib/language-name";
 import { defaultLanguage } from "@/lib/languages";
 import { landing, nav } from "@/lib/marketing/copy";
 import { waitlistPath } from "@/lib/routes";
@@ -6,7 +7,7 @@ import { largeButton } from "./buttons";
 import { StartCta } from "./StartLink";
 import { Wrap } from "./Wrap";
 
-const languageName = [defaultLanguage.variety, defaultLanguage.name].filter(Boolean).join(" ");
+const name = languageName(defaultLanguage);
 
 export function LandingHero() {
   const { hero } = landing;
@@ -16,12 +17,12 @@ export function LandingHero() {
       <Wrap className="flex flex-wrap items-center gap-16 pt-16 pb-24">
         <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-6">
           <span className="self-start rounded-pill bg-paper px-3.5 py-1.5 text-label text-teal-text">
-            {hero.badge(languageName)}
+            {hero.badge(name)}
           </span>
           <h1 className="font-display text-[40px] leading-[46px] font-extrabold tracking-[-0.015em] sm:text-[64px] sm:leading-[68px]">
             {hero.title}
           </h1>
-          <p className="max-w-[520px] text-[20px] leading-[30px]">{hero.body(languageName)}</p>
+          <p className="max-w-[520px] text-[20px] leading-[30px]">{hero.body(name)}</p>
           <div className="flex flex-wrap items-center gap-4">
             <StartCta className={largeButton}>{nav.start}</StartCta>
             <Link href={waitlistPath()} className="inline-flex min-h-11 items-center text-[15px] font-semibold">
@@ -64,7 +65,7 @@ export function LandingHero() {
                 transform="rotate(-90 14 14)"
               />
             </svg>
-            <span className="text-[15px] font-semibold">{sample.hoursBadge(languageName)}</span>
+            <span className="text-[15px] font-semibold">{sample.hoursBadge(name)}</span>
           </div>
         </div>
       </Wrap>

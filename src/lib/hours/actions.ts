@@ -5,6 +5,7 @@ import { isValidTimeZone } from "./days";
 import { manualTimeSchema } from "./manual-time";
 import * as service from "./service";
 import { requireLearner } from "@/lib/session";
+import { isVideoLocked } from "@/lib/billing/subscription";
 import { roadmapPath } from "@/lib/routes";
 import { getLanguageByCode } from "@/lib/languages";
 
@@ -34,6 +35,8 @@ export async function recordHeartbeat(input: unknown): Promise<HeartbeatActionRe
   if (!parsed.success) return { ok: false, code: "invalid" };
   const language = getLanguageByCode(parsed.data.languageCode);
   const learner = await requireLearner(language ? roadmapPath(language.slug) : "/");
+  // A full-access video the learner cannot watch counts nothing: the access rule is applied before anything is written.
+  if (await isVideoLocked(learner.id, parsed.data.languageCode, parsed.data.videoSlug)) return { ok: false, code: "rejected" };
   const { duration: _clientDuration, ...rest } = parsed.data; // the server uses the video's real length
   void _clientDuration;
   return service.recordHeartbeat({ userId: learner.id, ...rest });
@@ -51,6 +54,7 @@ export async function endOfVideo(input: unknown): Promise<EndOfVideoActionResult
   if (!parsed.success) return { ok: false, code: "invalid" };
   const language = getLanguageByCode(parsed.data.languageCode);
   const learner = await requireLearner(language ? roadmapPath(language.slug) : "/");
+  if (await isVideoLocked(learner.id, parsed.data.languageCode, parsed.data.videoSlug)) return { ok: false, code: "invalid" };
   return service.endOfVideo({ userId: learner.id, ...parsed.data });
 }
 

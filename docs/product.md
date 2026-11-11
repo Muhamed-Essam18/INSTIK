@@ -66,9 +66,9 @@ Hours, Roadmap, Hosts, Up next, Done for today. Stages: Hear it â†’ Follow it â†
 - PostgreSQL + Prisma.
 - Auth.js: Google and email magic link.
 - Mux or Cloudflare Stream for video.
-- Stripe (or Paddle as merchant of record) for subscriptions.
+- Stripe (Checkout, Customer Portal, Tax) for subscriptions.
 - Vercel + managed Postgres for hosting.
 
 ## Still to decide (use placeholders until then)
 
-Prices and the free/full split; transliteration standard; provisional roadmap hour estimates; video host choice (Mux vs Cloudflare Stream); payment provider.
+Prices and the free/full split; transliteration standard; provisional roadmap hour estimates; video host choice (Mux vs Cloudflare Stream).

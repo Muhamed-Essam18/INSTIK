@@ -20,7 +20,8 @@ import {
 import { ONBOARDING_KEY } from "@/lib/onboarding/draft-storage";
 import { accountStep, languageStep, languageStepTitle, levelStep, nav, timeStep } from "@/lib/onboarding/copy";
 import { AccountStep } from "./AccountStep";
-import { LanguageStep, languageName } from "./LanguageStep";
+import { languageName } from "@/lib/language-name";
+import { LanguageStep } from "./LanguageStep";
 import { LevelStep } from "./LevelStep";
 import { StepProgress } from "./StepProgress";
 import { TimeStep } from "./TimeStep";

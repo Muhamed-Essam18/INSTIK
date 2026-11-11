@@ -8,6 +8,16 @@ const mocks = vi.hoisted(() => ({ learner: vi.fn(), profile: vi.fn(), progress: 
 vi.mock("@/lib/session", () => ({ getLearner: mocks.learner }));
 vi.mock("@/lib/learner/profiles", () => ({ getProfile: mocks.profile }));
 vi.mock("@/lib/hours/queries", () => ({ getLibraryProgress: mocks.progress }));
+// A learner with Full access, so these tests keep checking progress only (locked markers have their own tests).
+vi.mock("@/lib/billing/subscription", () => ({
+  getSubscription: async () => ({
+    status: "ACTIVE",
+    plan: "MONTHLY",
+    currentPeriodEnd: new Date(Date.now() + 86_400_000),
+    cancelAtPeriodEnd: false,
+    stripeSubscriptionId: "sub_1",
+  }),
+}));
 
 const slug = "arabic-egyptian";
 const videos = getVideos(slug);
@@ -50,7 +60,7 @@ describe("Library banner and Watched labels", () => {
 
   it("uses only the current language's progress (asks for that language's code)", async () => {
     await renderProgress();
-    expect(mocks.progress).toHaveBeenCalledWith("u1", "arz");
+    expect(mocks.progress).toHaveBeenCalledWith("u1", "arz", expect.any(Function));
   });
 
   it("shows neither for a signed-out visitor, without reading progress", async () => {

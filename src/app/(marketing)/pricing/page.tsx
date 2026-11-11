@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { BillingNotice } from "@/components/billing/BillingNotice";
+import { FullAccessSlot } from "@/components/billing/FullAccessSlot";
 import { Faq } from "@/components/marketing/Faq";
 import { PlanCard } from "@/components/marketing/PlanCard";
 import { PricingSwitch } from "@/components/marketing/PricingSwitch";
 import { StartCta } from "@/components/marketing/StartLink";
 import { Wrap } from "@/components/marketing/Wrap";
-import { outlineButton, coralButton } from "@/components/marketing/buttons";
+import { outlineButton } from "@/components/marketing/buttons";
 import { pricing } from "@/lib/marketing/copy";
 
 export const metadata: Metadata = {
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
 const buttonShape = "h-[52px] w-full text-[16px]";
 
 export default function PricingPage() {
-  const { free, full } = pricing;
+  const { free } = pricing;
   return (
     <Wrap max="max-w-[1040px]" className="flex flex-col gap-12 pt-12 pb-24">
       <div className="flex flex-col items-center gap-3 text-center">
@@ -26,6 +28,7 @@ export default function PricingPage() {
         </h1>
         <p className="max-w-[560px] text-[19px] leading-[29px] text-slate">{pricing.body}</p>
       </div>
+      <BillingNotice />
       <PricingSwitch
         free={
           <PlanCard
@@ -41,7 +44,7 @@ export default function PricingPage() {
             cta={<StartCta className={`${outlineButton} ${buttonShape}`}>{free.cta}</StartCta>}
           />
         }
-        fullCta={<StartCta className={`${coralButton} ${buttonShape}`}>{full.cta}</StartCta>}
+        fullCta={<FullAccessSlot />}
       />
       <Faq />
     </Wrap>

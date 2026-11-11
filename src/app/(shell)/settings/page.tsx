@@ -1,18 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { BillingNotice } from "@/components/billing/BillingNotice";
+import { PlanSection } from "@/components/billing/PlanSection";
 import { PageFallback } from "@/components/screens/PageFallback";
 import { ProfileList } from "@/components/settings/ProfileList";
+import { hasFullAccess } from "@/lib/billing/access";
+import { billingEnabled } from "@/lib/billing/enabled";
+import { getSubscription } from "@/lib/billing/subscription";
+import { db } from "@/lib/db";
 import { listProfiles } from "@/lib/learner/profiles";
 import { addLanguagePath, settingsPath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Settings · Instik", robots: { index: false } };
 
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 /** Reads the session, so it renders behind a Suspense boundary. */
-async function SettingsContent() {
+async function SettingsContent({ searchParams }: { searchParams: SearchParams }) {
   const learner = await requireLearner(settingsPath());
-  const profiles = await listProfiles(learner.id);
+  const [profiles, subscription, user, query] = await Promise.all([
+    listProfiles(learner.id),
+    getSubscription(learner.id),
+    db().user.findUnique({ where: { id: learner.id }, select: { timeZone: true } }),
+    searchParams,
+  ]);
+
+  // Back from Checkout and still waiting: once access is on, swap the waiting notice for the welcome.
+  if (query.billing === "pending" && hasFullAccess(subscription, new Date())) redirect(`${settingsPath()}?billing=success`);
+
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-space-8">
       <div className="flex flex-col gap-space-2">
@@ -21,6 +39,8 @@ async function SettingsContent() {
           Signed in as <span className="font-semibold text-ink">{learner.email}</span>
         </p>
       </div>
+      <BillingNotice />
+      <PlanSection subscription={subscription} timeZone={user?.timeZone} billingOn={billingEnabled()} />
       <section aria-label="Your languages" className="flex flex-col gap-space-6">
         <ProfileList profiles={profiles} />
         <Link
@@ -34,10 +54,10 @@ async function SettingsContent() {
   );
 }
 
-export default function SettingsPage() {
+export default function SettingsPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <Suspense fallback={<PageFallback />}>
-      <SettingsContent />
+      <SettingsContent searchParams={searchParams} />
     </Suspense>
   );
 }

@@ -75,6 +75,17 @@ vi.mock("@/lib/learner/preferences", () => ({
   getAnswer: async () => undefined,
 }));
 vi.mock("@/lib/learner/preference-actions", () => ({ saveLayers: async () => ({ ok: true }), saveAnswer: async () => ({ ok: true }) }));
+// The learner here has Full access, so the watch page shows the player (locked states have their own tests).
+vi.mock("@/lib/billing/subscription", () => ({
+  getSubscription: async () => ({
+    status: "ACTIVE",
+    plan: "MONTHLY",
+    currentPeriodEnd: new Date(Date.now() + 86_400_000),
+    cancelAtPeriodEnd: false,
+    stripeSubscriptionId: "sub_1",
+  }),
+  requireVideoAccess: async () => ({ ok: true }),
+}));
 // The marketing call to action and log-in link read the session on the server; here they are the signed-out links.
 vi.mock("@/components/marketing/StartLink", () => ({
   StartCta: ({ className, children }: { className: string; children: React.ReactNode }) => (

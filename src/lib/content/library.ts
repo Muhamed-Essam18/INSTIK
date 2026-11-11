@@ -22,6 +22,7 @@ export function getLibraryVideos(language: string): LibraryVideo[] {
       hostSlug: host.slug,
       searchKey: normalizeForSearch([video.title, video.titleArabic, host.name, host.nameArabic].join(" ")),
       watched: false,
+      access: video.access,
     };
   });
 }

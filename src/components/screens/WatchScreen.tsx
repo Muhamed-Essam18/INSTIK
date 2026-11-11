@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { LockedVideo } from "@/components/billing/LockedVideo";
 import { ComingSoonNotice } from "@/components/ComingSoonNotice";
 import { PlaybackProvider } from "@/components/player/PlaybackProvider";
 import { WatchCounter } from "@/components/player/WatchCounter";
@@ -7,6 +8,9 @@ import { TranscriptPanel } from "@/components/transcript/TranscriptPanel";
 import { HostCard } from "@/components/watch/HostCard";
 import { UnderstandingCheck } from "@/components/watch/UnderstandingCheck";
 import { UpNext } from "@/components/watch/UpNext";
+import { markLocked } from "@/lib/billing/access";
+import { signPlaybackTokens } from "@/lib/billing/playback";
+import { getSubscription, requireVideoAccess } from "@/lib/billing/subscription";
 import { getHost, getHosts, getTranscriptView, getVideo } from "@/lib/content";
 import { getUpNextVideos } from "@/lib/content/library";
 import { stageLabel } from "@/lib/content/taxonomy";
@@ -29,17 +33,35 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   // A profile for a language that is no longer available is kept; its videos say the language is on its way.
   if (watchAccess({ language, profile }) === "language-unavailable") return <ComingSoonNotice language={language} />;
 
-  // The learner's own transcript layers and answer for this video come from their account.
-  const [initialLayers, initialAnswer] = await Promise.all([
-    getLayers(learner.id, language.code),
-    getAnswer(learner.id, language.code, video.slug),
-  ]);
-
   const host = getHost(slug, video.host)!; // validated at build: every video has a host
   const stage = stageLabel(video.stage);
   const languageName = [language.variety, language.name].filter(Boolean).join(" ");
-  const upNext = getUpNextVideos(slug, video.slug);
-  const next = upNext[0];
+
+  // Access is decided here, on the server, BEFORE the playback id, tokens, transcript, glossary or answers are read,
+  // so a learner without access never receives any of them. Free videos always pass.
+  if (!(await requireVideoAccess(learner.id, video)).ok) {
+    return (
+      <LockedVideo
+        languageSlug={slug}
+        title={video.title}
+        meta={`${stage} · ${formatLength(video.durationSeconds)} · ${languageName}`}
+        host={host}
+        firstHost={getHosts(slug)[0]?.slug === host.slug}
+      />
+    );
+  }
+
+  // The learner's own transcript layers and answer for this video come from their account.
+  const [initialLayers, initialAnswer, subscription] = await Promise.all([
+    getLayers(learner.id, language.code),
+    getAnswer(learner.id, language.code, video.slug),
+    getSubscription(learner.id),
+  ]);
+
+  // Up next shows locked videos as locked, and autoplay only ever moves on to one the learner can watch.
+  const upNext = markLocked(getUpNextVideos(slug, video.slug), subscription, new Date());
+  const next = upNext.find((v) => !v.locked);
+  const playbackTokens = signPlaybackTokens(video) ?? undefined;
 
   return (
     <PlaybackProvider
@@ -56,6 +78,7 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
             title={video.title}
             stageLabel={stage}
             libraryHref={libraryPath(slug)}
+            playbackTokens={playbackTokens}
           />
 
           <div className="flex flex-wrap items-start gap-space-6">

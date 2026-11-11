@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChoiceGroup } from "@/components/onboarding/ChoiceGroup";
-import { languageName } from "@/components/onboarding/LanguageStep";
+import { languageName } from "@/lib/language-name";
 import type { OfferState } from "@/lib/learner/profile-rules";
 import type { Language } from "@/lib/languages.schema";
 import { languageStep } from "@/lib/onboarding/copy";

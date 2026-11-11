@@ -105,6 +105,49 @@ describe("VideoPlayer, Mux", () => {
 });
 
 
+describe("VideoPlayer, signed playback", () => {
+  const tokens = { playback: "tok-v", thumbnail: "tok-t", storyboard: "tok-s" };
+  const renderSigned = (withTokens: boolean) =>
+    render(
+      <PlaybackProvider>
+        <VideoPlayer
+          videoSlug="at-the-cafe"
+          playbackId="a1B2c3D4"
+          title="At the café"
+          stageLabel="Follow it"
+          libraryHref="/x"
+          playbackTokens={withTokens ? tokens : undefined}
+        />
+      </PlaybackProvider>,
+    );
+
+  it("passes the tokens to the player when it has them", () => {
+    renderSigned(true);
+    expect(mux.props).toMatchObject({ tokens });
+  });
+
+  it("passes none for a public video", () => {
+    renderSigned(false);
+    expect(mux.props!.tokens).toBeUndefined();
+  });
+
+  it("asks a learner to reload when a signed video stops loading, for example after a long pause", () => {
+    renderSigned(true);
+    act(() => (mux.props!.onError as () => void)());
+    expect(screen.getByText("Reload the page to keep watching.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Reload" })).toBeTruthy();
+    expect(screen.queryByText(/didn.t load/)).toBeNull();
+  });
+
+  it("keeps the usual message for a public video that fails", () => {
+    renderSigned(false);
+    act(() => (mux.props!.onError as () => void)());
+    expect(screen.getByText(/didn.t load/)).toBeTruthy();
+    expect(screen.queryByText("Reload the page to keep watching.")).toBeNull();
+  });
+});
+
+
 describe("VideoPlayer, started by Autoplay next", () => {
   beforeEach(() => window.sessionStorage.clear());
 

@@ -181,7 +181,12 @@ export async function getDoneView(userId: string, languageCode: string, nowMs = 
 }
 
 /** The unfinished video to pick up and the videos already watched, for one learner and language. */
-export async function getLibraryProgress(userId: string, languageCode: string) {
+export async function getLibraryProgress(
+  userId: string,
+  languageCode: string,
+  /** Videos the learner can no longer watch are skipped when picking where to pick up. */
+  canPlay: (videoSlug: string) => boolean = () => true,
+) {
   const language = getLanguageByCode(languageCode);
   const rows = await db().videoProgress.findMany({
     where: { userId, languageCode },
@@ -189,7 +194,7 @@ export async function getLibraryProgress(userId: string, languageCode: string) {
     select: { videoSlug: true, positionSeconds: true, watched: true },
   });
   const exists = (slug: string) => (language ? getVideo(language.slug, slug) !== undefined : false);
-  const pickUp = rows.find((r) => !r.watched && r.positionSeconds > 0 && exists(r.videoSlug));
+  const pickUp = rows.find((r) => !r.watched && r.positionSeconds > 0 && exists(r.videoSlug) && canPlay(r.videoSlug));
   return {
     pickUp: pickUp ? { videoSlug: pickUp.videoSlug, positionSeconds: pickUp.positionSeconds } : null,
     watchedSlugs: rows.filter((r) => r.watched && exists(r.videoSlug)).map((r) => r.videoSlug),

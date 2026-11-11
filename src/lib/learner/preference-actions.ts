@@ -7,6 +7,7 @@ import { mergeDeviceChoices } from "@/lib/player/device-import";
 import { understoodSchema } from "@/lib/player/preferences";
 import { settingsPath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
+import { isVideoLocked } from "@/lib/billing/subscription";
 import { accountState, applyImport, saveAnswer as storeAnswer, saveLayers as storeLayers } from "./preferences";
 
 // Each action parses its input, takes the learner from the session (never from the input), and returns a small
@@ -33,6 +34,8 @@ export async function saveAnswer(input: unknown): Promise<SavePreferenceResult> 
     .safeParse(input);
   if (!parsed.success) return { ok: false, code: "invalid" };
   const learner = await requireLearner(settingsPath());
+  // No answer is stored for a full-access video the learner cannot watch.
+  if (await isVideoLocked(learner.id, parsed.data.languageCode, parsed.data.videoSlug)) return { ok: false, code: "invalid" };
   const result = await storeAnswer(learner.id, parsed.data.languageCode, parsed.data.videoSlug, parsed.data.answer);
   return result === "ok" ? { ok: true } : { ok: false, code: result };
 }

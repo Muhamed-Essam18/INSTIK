@@ -33,13 +33,16 @@ model User {
   remindersOn   Boolean   @default(false)
   hourSound     Boolean   @default(false)
 
-  accounts      Account[]
-  sessions      Session[]
-  languages     LearnerLanguage[]
-  answers       ComprehensionAnswer[]
-  watchSessions WatchSession[]
-  manualTimes   ManualTime[]
-  videoProgress VideoProgress[]
+  accounts         Account[]
+  sessions         Session[]
+  languages        LearnerLanguage[]
+  answers          ComprehensionAnswer[]
+  watchSessions    WatchSession[]
+  manualTimes      ManualTime[]
+  videoProgress    VideoProgress[]
+  // Billing: the Stripe customer for this learner (set when they first start checkout) and their subscription.
+  stripeCustomerId String?               @unique
+  subscription     Subscription?
 }
 
 model Account {
@@ -196,4 +199,59 @@ model WaitlistEntry {
 
   @@unique([languageCode, email])
   @@index([languageCode])
+}
+
+enum SubscriptionStatus {
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  PAUSED
+}
+
+enum BillingPlan {
+  MONTHLY
+  YEARLY
+}
+
+enum StripeEventOutcome {
+  RECEIVED
+  PROCESSED
+  IGNORED
+  UNMATCHED
+}
+
+// A learner's paid access. Mirrors their current Stripe subscription and holds no card data. One row per learner;
+// a learner who subscribes again after an ended subscription has this row replaced. It is the only basis for access decisions.
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeSubscriptionId String             @unique
+  status               SubscriptionStatus
+  plan                 BillingPlan
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean
+  // When Stripe created that subscription; decides whether a different subscription may replace an ended row.
+  stripeCreatedAt      DateTime
+  // When the Stripe read that produced this row started; a later write is applied only if its read started no earlier.
+  syncedAt             DateTime
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// One webhook delivery, kept for idempotency and for reviewing unmatched events. Mirrors Stripe; holds no learner content or card data.
+model StripeEvent {
+  id             String             @id
+  type           String
+  outcome        StripeEventOutcome
+  stripeObjectId String?
+  receivedAt     DateTime           @default(now())
+  processedAt    DateTime?
+
+  @@index([outcome, receivedAt])
 }

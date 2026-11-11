@@ -14,6 +14,7 @@ function make(slug: string, title: string, titleArabic: string, stage: LibraryVi
     hostSlug: host.toLowerCase(),
     searchKey: normalizeForSearch([title, titleArabic, host, hostAr].join(" ")),
     watched: false,
+    access: "free",
   };
 }
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  billingPortalPath,
+  billingReturnPath,
+  billingStartPath,
   addLanguagePath,
   onboardingFinishPath,
   settingsPath,
@@ -58,5 +61,15 @@ describe("languageSlugFromPathname", () => {
     expect(languageSlugFromPathname("/")).toBeUndefined();
     expect(languageSlugFromPathname("/pricing")).toBeUndefined();
     expect(languageSlugFromPathname("/learn")).toBeUndefined();
+  });
+});
+
+describe("billing paths", () => {
+  it("builds the checkout start, portal and return paths", () => {
+    expect(billingStartPath("monthly")).toBe("/billing/start?period=monthly");
+    expect(billingStartPath("yearly")).toBe("/billing/start?period=yearly");
+    expect(billingPortalPath()).toBe("/billing/portal");
+    expect(billingPortalPath("cancel")).toBe("/billing/portal?flow=cancel");
+    expect(billingReturnPath()).toBe("/billing/return");
   });
 });

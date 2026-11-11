@@ -12,8 +12,12 @@ const shapes = [
   `/learn/${slug}/hosts/${slug}`,
   `/settings`,
   `/settings/add-language`,
+  `/pricing`,
   `/onboarding/finish`,
 ].map((shape) => new RegExp(`^${shape}${query}$`));
+
+// The purchase link: only the two known periods, never the generic query pattern (nothing else under /billing is allowed).
+const exactShapes = [/^\/billing\/start\?period=(?:monthly|yearly)$/];
 
 /**
  * A return address is only ever a path inside this site matching a known route shape. Anything else
@@ -21,5 +25,5 @@ const shapes = [
  */
 export function sanitiseReturnTo(value: unknown, fallback: string): string {
   if (typeof value !== "string" || value.length === 0 || value.length > MAX_LENGTH) return fallback;
-  return shapes.some((shape) => shape.test(value)) ? value : fallback;
+  return shapes.some((shape) => shape.test(value)) || exactShapes.some((shape) => shape.test(value)) ? value : fallback;
 }

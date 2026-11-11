@@ -117,12 +117,7 @@ export const pricing = {
   },
   full: {
     name: "Full access",
-    /** Placeholders until prices are decided. */
-    priceMonthly: "[PRICE]",
-    priceYearly: "[PRICE]",
-    saving: "[Save X%]",
-    perMonthly: "per month",
-    perYearly: "per year",
+    // Prices, the saving and the period labels come from src/lib/billing/plans.ts, the one price config.
     cta: "Get full access",
     items: [
       "Every video at every stage",

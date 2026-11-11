@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { priceLabel, savingLabel } from "@/lib/billing/plans";
 import * as copy from "@/lib/marketing/copy";
 
 // Brand behaviours as acceptance criteria (constitution II): no streak pressure, urgency or real prices, no internal
@@ -33,9 +34,9 @@ describe("marketing copy", () => {
   });
 
   it("keeps price placeholders visible", () => {
-    expect(copy.pricing.full.priceMonthly).toMatch(/^\[.*\]$/);
-    expect(copy.pricing.full.priceYearly).toMatch(/^\[.*\]$/);
-    expect(copy.pricing.full.saving).toMatch(/^\[.*\]$/);
+    expect(priceLabel("monthly")).toMatch(/^\[.*\]$/);
+    expect(priceLabel("yearly")).toMatch(/^\[.*\]$/);
+    expect(savingLabel()).toMatch(/^\[.*\]$/);
   });
 
   it("has the agreed pricing content", () => {

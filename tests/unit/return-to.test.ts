@@ -14,6 +14,9 @@ describe("sanitiseReturnTo", () => {
     "/onboarding/finish?returnTo=%2Fsettings",
     "/settings/add-language?language=es&returnTo=%2Flearn%2Fspanish",
     "/learn/arabic-egyptian/watch/at-the-cafe?t=30",
+    "/pricing",
+    "/billing/start?period=monthly",
+    "/billing/start?period=yearly",
   ])("accepts %s", (path) => {
     expect(sanitiseReturnTo(path, FALLBACK)).toBe(path);
   });
@@ -28,6 +31,12 @@ describe("sanitiseReturnTo", () => {
     "/learn/arabic-egyptian\n/watch/x",
     "/learn/arabic-egyptian/watch/x\u0000",
     "/api/auth/signout",
+    "/billing/start",
+    "/billing/start?period=weekly",
+    "/billing/start?period=yearly&x=1",
+    "/billing/return?session_id=cs_x",
+    "/billing/portal",
+    "/api/stripe/webhook",
     "/learn/arabic-egyptian/../../etc",
     "/learn//watch",
     `/learn/${"a".repeat(600)}`,

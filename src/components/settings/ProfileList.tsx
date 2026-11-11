@@ -1,4 +1,4 @@
-import { languageName } from "@/components/onboarding/LanguageStep";
+import { languageName } from "@/lib/language-name";
 import { getLanguageByCode } from "@/lib/languages";
 import type { Profile } from "@/lib/learner/profile-rules";
 import { ProfileForm } from "./ProfileForm";

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LevelStep } from "@/components/onboarding/LevelStep";
 import { TimeStep } from "@/components/onboarding/TimeStep";
-import { languageName } from "@/components/onboarding/LanguageStep";
+import { languageName } from "@/lib/language-name";
 import { addLanguage } from "@/lib/learner/actions";
 import {
   DEFAULT_LEVEL,

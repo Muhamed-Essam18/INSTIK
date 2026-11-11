@@ -13,6 +13,23 @@ const envSchema = z.object({
   AUTH_RESEND_KEY: z.string().min(1),
   EMAIL_FROM: z.string().min(1),
   IP_HASH_SALT: z.string().min(16),
+  // Billing and signed playback. All optional: with none set, billing is simply off.
+  STRIPE_SECRET_KEY: z.string().min(1).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  BILLING_LIVE: z.literal("true").optional(),
+  MUX_SIGNING_KEY_ID: z.string().min(1).optional(),
+  MUX_SIGNING_PRIVATE_KEY: z.string().min(1).optional(),
+}).superRefine((value, ctx) => {
+  // Test-mode keys only until launch: a live key needs an explicit BILLING_LIVE=true.
+  // (scripts/stripe-setup.ts repeats this check because it cannot import this server-only module; keep them in step.)
+  if (value.STRIPE_SECRET_KEY?.startsWith("sk_live_") && value.BILLING_LIVE !== "true") {
+    ctx.addIssue({ code: "custom", path: ["STRIPE_SECRET_KEY"], message: "a live key needs BILLING_LIVE=true" });
+  }
+  // The two Mux signing settings only work as a pair.
+  if (Boolean(value.MUX_SIGNING_KEY_ID) !== Boolean(value.MUX_SIGNING_PRIVATE_KEY)) {
+    const missing = value.MUX_SIGNING_KEY_ID ? "MUX_SIGNING_PRIVATE_KEY" : "MUX_SIGNING_KEY_ID";
+    ctx.addIssue({ code: "custom", path: [missing], message: "set both Mux signing settings or neither" });
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;

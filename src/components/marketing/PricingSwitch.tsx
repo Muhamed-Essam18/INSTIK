@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { createContext, useState, type ReactNode } from "react";
+import { periodLabel, priceLabel, savingLabel, type Period } from "@/lib/billing/plans";
 import { pricing } from "@/lib/marketing/copy";
 import { PlanCard } from "./PlanCard";
+
+/** The selected billing period, for the Full access button (a client child rendered by the server) to read. */
+export const PeriodContext = createContext<Period>("monthly");
 
 const priceClass = "font-display text-[44px] leading-12 font-extrabold";
 
@@ -10,10 +14,11 @@ const priceClass = "font-display text-[44px] leading-12 font-extrabold";
 export function PricingSwitch({ free, fullCta }: { free: ReactNode; fullCta: ReactNode }) {
   const [period, setPeriod] = useState<(typeof pricing.periods)[number]>("Monthly");
   const yearly = period === "Yearly";
+  const selected: Period = yearly ? "yearly" : "monthly";
   const { full } = pricing;
 
   return (
-    <>
+    <PeriodContext.Provider value={selected}>
       <div
         role="group"
         aria-label={pricing.periodLabel}
@@ -43,18 +48,18 @@ export function PricingSwitch({ free, fullCta }: { free: ReactNode; fullCta: Rea
           items={full.items}
           badge={
             yearly ? (
-              <span className="rounded-pill bg-sun px-3 py-1 text-caption text-ink">{full.saving}</span>
+              <span className="rounded-pill bg-sun px-3 py-1 text-caption text-ink">{savingLabel()}</span>
             ) : null
           }
           price={
             <>
-              <span className={priceClass}>{yearly ? full.priceYearly : full.priceMonthly}</span>
-              <span>{yearly ? full.perYearly : full.perMonthly}</span>
+              <span className={priceClass}>{priceLabel(selected)}</span>
+              <span>{periodLabel(selected)}</span>
             </>
           }
           cta={fullCta}
         />
       </div>
-    </>
+    </PeriodContext.Provider>
   );
 }

@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { ChoiceGroup } from "./ChoiceGroup";
 import type { Language } from "@/lib/languages.schema";
+import { languageName } from "@/lib/language-name";
 import { languagesToOffer } from "@/lib/learner/profile-rules";
 import { languageStep } from "@/lib/onboarding/copy";
 import { waitlistPath } from "@/lib/routes";
 
 const rowClass = "flex items-center gap-space-4 rounded-lg bg-paper/50 px-space-6 py-space-4 text-slate";
-
-export const languageName = (l: Language) => [l.variety, l.name].filter(Boolean).join(" ");
 
 type Props = { languages: readonly Language[]; value: string | undefined; onChoose: (code: string) => void };
 

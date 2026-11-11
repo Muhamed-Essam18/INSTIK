@@ -1,9 +1,10 @@
+import { languageName } from "@/lib/language-name";
 import { defaultLanguage } from "@/lib/languages";
 import { landing } from "@/lib/marketing/copy";
 import { stageEstimateLabel } from "@/lib/marketing/stage-estimate";
 import { Wrap } from "./Wrap";
 
-const languageName = [defaultLanguage.variety, defaultLanguage.name].filter(Boolean).join(" ");
+const name = languageName(defaultLanguage);
 const stageKeys = ["HEAR_IT", "FOLLOW_IT", "UNDERSTAND_IT", "JOIN_IN"] as const;
 const fills = ["bg-coral", "bg-sun", "bg-teal", "bg-cream"];
 
@@ -23,7 +24,7 @@ export function Stages() {
             <li key={item.name} className={`flex flex-col gap-2 rounded-lg p-6 text-ink ${fills[i]}`}>
               <span className="text-label">Stage {i + 1}</span>
               <span className="font-display text-[28px] leading-[34px] font-extrabold">{item.name}</span>
-              <span className="text-[15px] leading-[22px]">{item.body(languageName)}</span>
+              <span className="text-[15px] leading-[22px]">{item.body(name)}</span>
               <span className="text-label">{stageEstimateLabel(defaultLanguage, stageKeys[i])}</span>
             </li>
           ))}

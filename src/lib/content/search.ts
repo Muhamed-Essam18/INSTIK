@@ -14,6 +14,10 @@ export type LibraryVideo = {
   /** Normalised title, Arabic title and host names, for search only. */
   searchKey: string;
   watched: boolean;
+  /** From the video's content file: free, or full access. */
+  access: "free" | "full";
+  /** Set on the server for a learner without access to this video; absent in the static list. */
+  locked?: boolean;
 };
 
 export type LibraryFilters = { stage: StageSlug; topic: TopicSlug | null; query: string };
