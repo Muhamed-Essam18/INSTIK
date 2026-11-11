@@ -14,3 +14,18 @@ These files are the approved designs from the Instik — MVP screens canvas, one
 | Pricing.dc.html | Pricing |
 
 Sample content (host names, video titles, Arabic lines) and bracketed placeholders ([PRICE], [~X hours]) are not final.
+
+## Creator and owner panels (added November 2026)
+
+| File | Screen |
+| --- | --- |
+| CreatorDashboard.dc.html | Creator: dashboard |
+| CreatorUpload.dc.html | Creator: upload a video |
+| CreatorVideos.dc.html | Creator: my videos |
+| CreatorVideo.dc.html | Creator: video status and history |
+| OwnerReviewQueue.dc.html | Owner: review queue |
+| OwnerReview.dc.html | Owner: review and transcript |
+| OwnerCreators.dc.html | Owner: creators and invites |
+| OwnerEarnings.dc.html | Owner: monthly earnings |
+
+All names and numbers on these screens are sample data.

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Instik creator — Upload</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&amp;family=Inter:ital,wght@0,400;0,500;0,600;1,400&amp;family=Noto+Naskh+Arabic:wght@400&amp;display=swap">
+<style>
+body{margin:0;background:#fff4e6}
+a{color:#c2412a}a:hover{color:#1b2340}
+button,select,input,textarea{font-family:inherit}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #fff4e6; color: #1b2340; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 15px; line-height: 22px; display: flex; flex-wrap: wrap">
+<nav aria-label="Creator panel" style="flex: 1 1 220px; max-width: 260px; background: #1b2340; color: #fff4e6; padding: 24px 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px">
+<span style="padding: 0 12px 20px; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-weight: 800; font-size: 26px">instik <span style="font-family: Inter, system-ui, sans-serif; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: #ffc83d; color: #1b2340; vertical-align: middle">creator</span></span>
+<a href="CreatorDashboard.dc.html" style="padding: 12px; border-radius: 14px; color: #fff4e6; text-decoration: none;">Dashboard</a>
+<a href="CreatorUpload.dc.html" aria-current="page" style="padding: 12px; border-radius: 14px; color: #fff4e6; text-decoration: none; background: #fff4e61f; font-weight: 600;">Upload a video</a>
+<a href="CreatorVideos.dc.html" style="padding: 12px; border-radius: 14px; color: #fff4e6; text-decoration: none;">My videos</a>
+<a href="Host.dc.html" style="padding: 12px; border-radius: 14px; color: #fff4e6; text-decoration: none;">My host page</a>
+<div style="flex-grow: 1"></div>
+<span style="padding: 12px; font-size: 13px; color: #fff4e6b3">Signed in as Salma</span>
+</nav>
+<main style="flex: 999 1 640px; min-width: 0; padding: 32px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center"><div style="flex-grow: 1"><h1 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 32px; line-height: 40px; font-weight: 800">Upload a video</h1><p style="margin: 4px 0 0; font-size: 15px; color: #5b6478">Egyptian Arabic · reviewed by Instik before it goes live</p></div></div><div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start"><div style="flex: 2 1 480px; min-width: 0"><div style="background: #ffffff; border-radius: 24px; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; padding: 28px; display: flex; flex-direction: column; gap: 20px">
+<div style="padding: 32px; border-radius: 14px; border: 2px dashed #5b6478; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1b2340" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path></svg>
+<span style="font-weight: 600">Drop your video here</span>
+<span style="font-size: 13px; color: #5b6478">MP4 or MOV. Your file goes straight to our video host, so large files are fine. Or <a href="#">choose a file</a></span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 14px"><span style="font-weight: 600">visiting-grandma.mp4</span><span style="color: #5b6478">Uploading · 62%</span></div>
+<div style="height: 8px; border-radius: 999px; background: #ffe1d6"><div style="width: 62%; height: 8px; border-radius: 999px; background: #ff6a4d"></div></div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Title<input value="Visiting grandma on Friday" style="height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 15px; font-weight: 400; box-sizing: border-box"></label>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Stage<select style="height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 15px; font-weight: 400; box-sizing: border-box"><option>Follow it</option><option>Hear it</option><option>Understand it</option></select><span style="font-size: 13px; font-weight: 400; color: #5b6478">Who is this for? Slow and simple is Hear it.</span></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Topic<select style="height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 15px; font-weight: 400; box-sizing: border-box"><option>Family</option><option>Food</option><option>Daily life</option><option>Getting around</option><option>Culture</option></select></label>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Language<select style="height: 44px; padding: 0 12px; border-radius: 8px; border: 1px solid #5b6478; background: #ffffff; color: #1b2340; font-size: 15px; font-weight: 400; box-sizing: border-box"><option>Egyptian Arabic</option></select></label>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 600">Short description<textarea rows="3" style="padding: 10px 12px; border-radius: 8px; border: 1px solid #5b6478; font-size: 15px; font-weight: 400; color: #1b2340; resize: vertical">We visit my grandmother and talk about the food she cooks every Friday.</textarea><span style="font-size: 13px; font-weight: 400; color: #5b6478">Shown to learners under the video.</span></label>
+</div></div><div style="flex: 1 1 300px; min-width: 0"><div style="display: flex; flex-direction: column; gap: 16px">
+<div style="background: #ffffff; border-radius: 24px; box-shadow: 0 1px 2px #1b234014, 0 2px 8px #1b23400f; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: Nunito, ui-rounded, system-ui, sans-serif; font-size: 20px; font-weight: 700">Before you submit</h2>
+<ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px; font-size: 14px"><li style="display: flex; gap: 10px; align-items: flex-start"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 1px; accent-color: #19a38f"><span>A real person is on camera, in a real place, with natural light.</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 1px; accent-color: #19a38f"><span>The room is quiet and the speech is clear.</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 1px; accent-color: #19a38f"><span>I speak at the pace of the stage I chose.</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 1px; accent-color: #19a38f"><span>No background music with lyrics.</span></li><li style="display: flex; gap: 10px; align-items: flex-start"><input type="checkbox" style="width: 20px; height: 20px; margin-top: 1px; accent-color: #19a38f"><span>I own this video and its music, and I agree to the creator terms.</span></li></ul>
+</div>
+<div style="padding: 20px; border-radius: 24px; background: #ffe1d6; font-size: 14px; line-height: 21px"><strong>You don't need a transcript.</strong> The Instik team writes it after upload, then reviews the video. You'll see the status in My videos.</div>
+<div style="display: flex; gap: 10px"><button style="display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 18px; border-radius: 14px; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; border: 1px solid #5b6478; background: #ffffff; color: #1b2340">Save draft</button><span style="flex-grow: 1"></span><button style="display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 18px; border-radius: 14px; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer; border: none; background: #ff6a4d; color: #1b2340">Submit for review</button></div>
+</div></div></div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1150}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

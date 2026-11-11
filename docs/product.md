@@ -21,11 +21,21 @@ Audience: adults studying on their own, English interface. Not for children, exa
 7. **Host page**: photo, name in Latin and Arabic, short story, topics, videos with this host.
 8. **Pricing**: Free and Full access, monthly or yearly, FAQ. Prices are placeholders until decided.
 
-No admin panel in the MVP.
+The MVP started without any admin panel (content as files). That changed in November 2026: before production, Instik adds a **creator programme** with a creator panel and an owner panel (screens 9–16 below).
 
-### Design decision: utility screens
+### Creator panel (invite only)
 
-Utility screens (sign-in, check email, sign-in error, settings with add language, and the account menu) are part of the MVP. They have no separate design and are built from the design system and the patterns in the approved screens.
+9. **Dashboard**: videos uploaded, in review, approved and with changes requested; this month's counted views, watch hours, unique learners and average completion; views per week; earnings (estimated this month, last month final, next payout); top videos with their فاهم؟ answers; requests from Instik.
+10. **Upload a video**: direct upload with progress, title, stage, topic, language, description and a pre-submit checklist. Creators do not write transcripts.
+11. **My videos**: every video with its status, latest note from Instik and views.
+12. **Video status**: the note from Instik, the full status history, upload a new version.
+
+### Owner panel (Instik)
+
+13. **Review queue**: oldest first, with counts.
+14. **Review and transcript**: player, review checklist, stage and access (free or full) set by Instik, the transcript editor, and Reject / Request changes / Approve and publish. A note is required for reject and changes; approve needs the full checklist.
+15. **Creators**: invite by email (one-time link, expires after 7 days), pause and resume, per-creator stats.
+16. **Earnings**: monthly statement from gross revenue to net, the 80/20 split, each creator's share, mark as paid, close the month.
 
 ## Brand behaviours the product must enforce
 
@@ -42,14 +52,30 @@ Utility screens (sign-in, check email, sign-in error, settings with add language
 
 Hours, Roadmap, Hosts, Up next, Done for today. Stages: Hear it → Follow it → Understand it → Join in. Internal content levels (Superbeginner, Beginner, Intermediate, Advanced) never appear in learner copy. Launch content covers Hear it and Follow it.
 
-## Content model (no admin panel)
+## Content model
 
-- Videos are uploaded in the video host's dashboard (Mux or Cloudflare Stream).
-- Each video's metadata lives as a file in the repository under `content/<language>/videos/<slug>.json`: title, slug, language, variety, stage, topic, host, duration, access (free or full), playback id.
-- Each transcript is a file next to it: `<slug>.vtt` (time-synced segments) plus word links into a per-language glossary `content/<language>/glossary.json` (word with tashkeel, base form, transliteration, English meaning, optional audio).
-- Hosts: `content/<language>/hosts/<slug>.json` (name, Arabic name, story, topics, photo).
-- Languages: `content/languages.json`, each with code, name, variety, script, text direction, fonts and which transcript layers it uses. Adding a language is adding data, not code.
-- Learner data (accounts, per-language level, watch sessions, hours, rhythm, settings, transcript preferences, waitlist sign-ups, subscriptions) lives in the database.
+- Video files never pass through our server. The browser uploads them directly to Mux using a one-time upload link created by our server; Mux tells us through a verified webhook when the video is ready.
+- The database stores everything about a video except the file: title, slug, language, variety, stage, topic, creator, duration, access (free or full, set by Instik), Mux asset and playback IDs, status, transcript segments and glossary links.
+- Video status follows one path: Draft → Uploading → Processing → In review → Approved (live). From review it can go to Changes requested (back to the creator) or Rejected. Every change is stored with who, when and the note.
+- Learners only ever see Approved videos.
+- Full-access videos use Mux signed playback; free videos may be public.
+- Transcripts are written by Instik in the review screen: time-coded segments with Arabic (with tashkeel), transliteration and English, plus word links to a per-language glossary.
+- A creator's profile is their public host page.
+- Languages stay as data in `content/languages.json`. The original sample videos, transcripts, glossary and hosts are imported once into the database.
+
+## Roles
+
+- **Learner**: everyone with an account.
+- **Creator**: invite only. Upload and manage their own videos, see their own stats and earnings, never anyone else's.
+- **Owner**: Instik team. Review, write transcripts, invite and pause creators, run monthly earnings.
+
+## Creator earnings
+
+- Each month, **80% of net revenue** goes to the creator pool and **20%** to Instik. Net revenue = subscription revenue minus VAT, payment fees and refunds.
+- The pool is split by each creator's share of **counted views** that month.
+- A **counted view**: at least 30 seconds of honest watch time (the same rules as Hours), at most once per learner per video per day, and only from learners with active full access at that time.
+- During the month the dashboard shows an estimate. The owner closes the month, which locks the numbers. Money is stored in integer cents, and rounding never makes the shares add up to more than the pool.
+- Payouts are bank transfers made by the owner, then marked as paid. Automatic payouts (e.g. Stripe Connect) come later.
 
 ## Multi-language and Arabic rules
 
@@ -66,9 +92,9 @@ Hours, Roadmap, Hosts, Up next, Done for today. Stages: Hear it → Follow it �
 - PostgreSQL + Prisma.
 - Auth.js: Google and email magic link.
 - Mux or Cloudflare Stream for video.
-- Stripe (Checkout, Customer Portal, Tax) for subscriptions.
+- Stripe (or Paddle as merchant of record) for subscriptions.
 - Vercel + managed Postgres for hosting.
 
 ## Still to decide (use placeholders until then)
 
-Prices and the free/full split; transliteration standard; provisional roadmap hour estimates; video host choice (Mux vs Cloudflare Stream).
+Prices and the free/full split; transliteration standard; provisional roadmap hour estimates; video host choice (Mux vs Cloudflare Stream); payment provider.
