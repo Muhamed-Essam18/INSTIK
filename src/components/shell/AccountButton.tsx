@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { signOutAction } from "@/lib/auth/actions";
+import type { PanelLink } from "@/lib/roles/panels";
 import { clearDraft } from "@/lib/onboarding/draft-storage";
 import { clearDeviceChoices } from "@/lib/player/device-import";
 import { settingsPath } from "@/lib/routes";
@@ -10,8 +11,8 @@ import { settingsPath } from "@/lib/routes";
 const itemClass =
   "flex min-h-11 w-full items-center rounded-sm px-space-3 text-left text-body text-ink no-underline hover:bg-coral-tint hover:text-ink focus-visible:bg-coral-tint";
 
-/** The account button and its small menu: Settings and Sign out. */
-export function AccountButton({ initial }: { initial: string }) {
+/** The account button and its small menu: the panels for the person's role, Settings and Sign out. */
+export function AccountButton({ initial, panels = [] }: { initial: string; panels?: PanelLink[] }) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -93,6 +94,11 @@ export function AccountButton({ initial }: { initial: string }) {
           onKeyDown={onMenuKeyDown}
           className="absolute top-full right-0 z-50 mt-space-2 flex w-56 max-w-[calc(100vw-32px)] flex-col gap-1 rounded-md bg-paper p-space-2 shadow-md"
         >
+          {panels.map((panel) => (
+            <Link key={panel.href} href={panel.href} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
+              {panel.label}
+            </Link>
+          ))}
           <Link href={settingsPath()} role="menuitem" onClick={() => setOpen(false)} className={itemClass}>
             Settings
           </Link>

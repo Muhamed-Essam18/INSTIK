@@ -17,6 +17,12 @@ describe("parseEnv", () => {
     expect(parseEnv(valid).AUTH_GOOGLE_ID).toBe("google-id");
   });
 
+  it("treats OWNER_EMAILS as optional and an empty value as not set", () => {
+    expect(parseEnv(valid).OWNER_EMAILS).toBeUndefined();
+    expect(parseEnv({ ...valid, OWNER_EMAILS: "" }).OWNER_EMAILS).toBeUndefined();
+    expect(parseEnv({ ...valid, OWNER_EMAILS: "a@x.com,b@x.com" }).OWNER_EMAILS).toBe("a@x.com,b@x.com");
+  });
+
   it("treats AUTH_URL as optional", () => {
     expect(parseEnv(valid).AUTH_URL).toBeUndefined();
     expect(parseEnv({ ...valid, AUTH_URL: "https://instik.example" }).AUTH_URL).toBe("https://instik.example");

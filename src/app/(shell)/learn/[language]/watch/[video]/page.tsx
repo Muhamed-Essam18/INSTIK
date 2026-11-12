@@ -2,20 +2,19 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageFallback } from "@/components/screens/PageFallback";
 import { WatchScreen } from "@/components/screens/WatchScreen";
-import { getVideo, getVideos } from "@/lib/content";
-import { isAvailable, languages } from "@/lib/languages";
+import { getVideo } from "@/lib/content";
+import { sampleVideoParams } from "@/lib/content/static-params";
 
 type Params = Promise<{ language: string; video: string }>;
 
+// Samples from the content files so the build needs no database; every video is read from the database when opened.
 export function generateStaticParams() {
-  return languages
-    .filter(isAvailable)
-    .flatMap((l) => getVideos(l.slug).map((v) => ({ language: l.slug, video: v.slug })));
+  return sampleVideoParams();
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { language, video } = await params;
-  return { title: `${getVideo(language, video)?.title ?? "Watch"} · Instik` };
+  return { title: `${(await getVideo(language, video))?.title ?? "Watch"} · Instik` };
 }
 
 export default function WatchVideoPage({ params }: { params: Params }) {

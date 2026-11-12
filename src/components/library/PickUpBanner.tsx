@@ -7,10 +7,10 @@ const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds
 export type PickUp = { videoSlug: string; positionSeconds: number };
 
 /** "Pick up where you left off": the learner's own unfinished video, or nothing when there is none. */
-export function PickUpBanner({ languageSlug, pickUp }: { languageSlug: string; pickUp: PickUp | null }) {
+export async function PickUpBanner({ languageSlug, pickUp }: { languageSlug: string; pickUp: PickUp | null }) {
   if (!pickUp) return null;
-  const video = getVideo(languageSlug, pickUp.videoSlug);
-  const host = video && getHost(languageSlug, video.host);
+  const video = await getVideo(languageSlug, pickUp.videoSlug);
+  const host = video && (await getHost(languageSlug, video.host));
   if (!video || !host) return null;
 
   return (

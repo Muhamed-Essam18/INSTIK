@@ -61,13 +61,13 @@ Hours, Roadmap, Hosts, Up next, Done for today. Stages: Hear it â†’ Follow it â†
 - Full-access videos use Mux signed playback; free videos may be public.
 - Transcripts are written by Instik in the review screen: time-coded segments with Arabic (with tashkeel), transliteration and English, plus word links to a per-language glossary.
 - A creator's profile is their public host page.
-- Languages stay as data in `content/languages.json`. The original sample videos, transcripts, glossary and hosts are imported once into the database.
+- Languages stay as data in `content/languages.json`. The original sample videos, transcripts, glossary and hosts are imported once into the database (`npm run import:content`, safe to run again). A video whose transcript file exists but is invalid is kept as a hidden Draft and reported, and a later run completes it once the file is fixed.
 
 ## Roles
 
 - **Learner**: everyone with an account.
-- **Creator**: invite only. Upload and manage their own videos, see their own stats and earnings, never anyone else's.
-- **Owner**: Instik team. Review, write transcripts, invite and pause creators, run monthly earnings.
+- **Creator**: invite only. Upload and manage their own videos, see their own stats and earnings, never anyone else's. An owner sends the invitation by name and email; the link works once, lasts 7 days, and must be opened signed in with the invited email address. Accepting it makes the account a creator and creates their host page.
+- **Owner**: Instik team, set from a configured list of owner emails (the `OWNER_EMAILS` setting) and never stored. Review, write transcripts, invite and pause creators, run monthly earnings.
 
 ## Creator earnings
 

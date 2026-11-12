@@ -1,11 +1,14 @@
 import "server-only";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { cache } from "react";
 import { auth } from "@/auth";
 import { gateRedirect } from "@/lib/auth/gate";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 import type { Profile } from "@/lib/learner/profile-rules";
+import type { Actor } from "@/lib/roles/actor";
+import { parseOwnerEmails, resolveRole, type RoleName } from "@/lib/roles/rules";
 import { addLanguagePath } from "@/lib/routes";
 
 // The Data Access Layer. The proxy only checks that a session cookie exists; this is where the session is
@@ -43,3 +46,33 @@ export async function requireProfile(
   if (!row) redirect(addLanguagePath(languageCode, returnTo));
   return { learner, profile: { languageCode: row.languageCode, stage: row.stage, minutesPerDay: row.minutesPerDay } };
 }
+
+/**
+ * The signed-in person with their role, or null. Cached for the request. The role is read from the database and the
+ * owner list on every request, so removing an email from OWNER_EMAILS takes effect at the next check.
+ */
+export const getActor = cache(async (): Promise<Actor | null> => {
+  const learner = await getLearner();
+  if (!learner) return null;
+  const row = await db().user.findUnique({ where: { id: learner.id }, select: { role: true } });
+  if (!row) return null;
+  const role = resolveRole({ email: learner.email, role: row.role }, parseOwnerEmails(env().OWNER_EMAILS));
+  return { id: learner.id, email: learner.email, name: learner.name, role };
+});
+
+/**
+ * The signed-in person when they have exactly this role. Signed out: a redirect to sign in that comes back to
+ * `returnTo`. Any other role: a not-found page, so nobody learns that the area exists.
+ */
+export async function requireRole(role: RoleName, returnTo: string): Promise<Actor> {
+  const actor = await getActor();
+  if (!actor) {
+    const [pathname, ...rest] = returnTo.split("?");
+    redirect(gateRedirect(pathname, rest.length ? `?${rest.join("?")}` : ""));
+  }
+  if (actor.role !== role) notFound();
+  return actor;
+}
+
+export const requireOwner = (returnTo: string) => requireRole("owner", returnTo);
+export const requireCreator = (returnTo: string) => requireRole("creator", returnTo);

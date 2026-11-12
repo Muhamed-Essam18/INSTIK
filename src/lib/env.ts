@@ -19,6 +19,8 @@ const envSchema = z.object({
   BILLING_LIVE: z.literal("true").optional(),
   MUX_SIGNING_KEY_ID: z.string().min(1).optional(),
   MUX_SIGNING_PRIVATE_KEY: z.string().min(1).optional(),
+  // Comma-separated emails of the Instik team. They get the owner role. Optional: unset means no owners.
+  OWNER_EMAILS: z.string().optional(),
 }).superRefine((value, ctx) => {
   // Test-mode keys only until launch: a live key needs an explicit BILLING_LIVE=true.
   // (scripts/stripe-setup.ts repeats this check because it cannot import this server-only module; keep them in step.)

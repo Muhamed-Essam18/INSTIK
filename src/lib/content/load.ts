@@ -22,7 +22,7 @@ function listFiles(dir: string, extension: string): string[] {
     : [];
 }
 
-function readLanguageFolder(slug: string): RawContent | null {
+export function readLanguageFolder(slug: string): RawContent | null {
   const dir = path.join(contentRoot, slug);
   if (!existsSync(dir)) return null;
   const glossaryFile = path.join(dir, "glossary.json");

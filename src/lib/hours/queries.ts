@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { getVideo } from "@/lib/content";
+import { getVideos } from "@/lib/content";
 import { getLanguageByCode } from "@/lib/languages";
 import type { Stage } from "@/lib/learner/profile-rules";
 import { isValidTimeZone, mondayOf, todayIn } from "./days";
@@ -193,7 +193,9 @@ export async function getLibraryProgress(
     orderBy: { updatedAt: "desc" },
     select: { videoSlug: true, positionSeconds: true, watched: true },
   });
-  const exists = (slug: string) => (language ? getVideo(language.slug, slug) !== undefined : false);
+  // Only Approved videos count: a progress row for any other video shows nowhere.
+  const approved = new Set(language ? (await getVideos(language.slug)).map((v) => v.slug) : []);
+  const exists = (slug: string) => approved.has(slug);
   const pickUp = rows.find((r) => !r.watched && r.positionSeconds > 0 && exists(r.videoSlug) && canPlay(r.videoSlug));
   return {
     pickUp: pickUp ? { videoSlug: pickUp.videoSlug, positionSeconds: pickUp.positionSeconds } : null,

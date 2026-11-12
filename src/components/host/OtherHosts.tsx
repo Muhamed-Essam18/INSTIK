@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { Host } from "@/lib/content/schema";
+import type { PublicHost } from "@/lib/content/mappers";
 import { hostPath } from "@/lib/routes";
 
-type Props = { languageSlug: string; hosts: Host[] };
+type Props = { languageSlug: string; hosts: PublicHost[] };
 
 export function OtherHosts({ languageSlug, hosts }: Props) {
   return (

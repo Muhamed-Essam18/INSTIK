@@ -9,8 +9,7 @@ import { ProfileList } from "@/components/settings/ProfileList";
 import { hasFullAccess } from "@/lib/billing/access";
 import { billingEnabled } from "@/lib/billing/enabled";
 import { getSubscription } from "@/lib/billing/subscription";
-import { db } from "@/lib/db";
-import { listProfiles } from "@/lib/learner/profiles";
+import { getTimeZone, listProfiles } from "@/lib/learner/profiles";
 import { addLanguagePath, settingsPath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
 
@@ -21,10 +20,10 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 /** Reads the session, so it renders behind a Suspense boundary. */
 async function SettingsContent({ searchParams }: { searchParams: SearchParams }) {
   const learner = await requireLearner(settingsPath());
-  const [profiles, subscription, user, query] = await Promise.all([
+  const [profiles, subscription, timeZone, query] = await Promise.all([
     listProfiles(learner.id),
     getSubscription(learner.id),
-    db().user.findUnique({ where: { id: learner.id }, select: { timeZone: true } }),
+    getTimeZone(learner.id),
     searchParams,
   ]);
 
@@ -40,7 +39,7 @@ async function SettingsContent({ searchParams }: { searchParams: SearchParams })
         </p>
       </div>
       <BillingNotice />
-      <PlanSection subscription={subscription} timeZone={user?.timeZone} billingOn={billingEnabled()} />
+      <PlanSection subscription={subscription} timeZone={timeZone} billingOn={billingEnabled()} />
       <section aria-label="Your languages" className="flex flex-col gap-space-6">
         <ProfileList profiles={profiles} />
         <Link

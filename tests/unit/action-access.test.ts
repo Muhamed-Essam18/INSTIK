@@ -17,7 +17,11 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("@/auth", () => ({ auth: mocks.auth, signIn: mocks.signIn, signOut: vi.fn() }));
-vi.mock("@/lib/db", () => ({ db: () => mocks.db }));
+// The content tables come from the stand-in filled from the sample files; the learner tables are mocked in this file.
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../helpers/content-db");
+  return { db: () => ({ ...mocks.db, ...contentDb.db }) };
+});
 vi.mock("@/lib/env", () => ({ env: () => ({ IP_HASH_SALT: "s".repeat(16) }) }));
 vi.mock("next/headers", () => ({ headers: mocks.headers }));
 vi.mock("next/navigation", () => ({

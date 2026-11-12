@@ -16,6 +16,11 @@ import { DoneScreen } from "@/components/screens/DoneScreen";
 import { RoadmapScreen } from "@/components/screens/RoadmapScreen";
 import { HostScreen } from "@/components/screens/HostScreen";
 
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../helpers/content-db");
+  return { db: () => contentDb.db };
+});
+
 const pathname = vi.hoisted(() => ({ value: "/" }));
 // These pages need an account; here the learner is signed in with a profile.
 vi.mock("@/lib/session", () => ({
@@ -105,7 +110,9 @@ const slug = "arabic-egyptian";
 const params = <T extends object>(value: T) => ({ params: Promise.resolve(value) });
 
 // `/learn/{language}/hosts` redirects to the first host, so it is rendered as that host's page.
-const firstHost = getHosts(slug)[0].slug;
+const allHosts = await getHosts(slug);
+const allVideos = await getVideos(slug);
+const firstHost = allHosts[0].slug;
 const pages: Record<string, () => ReactElement | Promise<ReactElement>> = {
   "/": Landing,
   // Onboarding and sign-in read the session and query string on the server; their links are not needed here.
@@ -119,13 +126,13 @@ const pages: Record<string, () => ReactElement | Promise<ReactElement>> = {
   [`/learn/${slug}/roadmap`]: () => RoadmapScreen(params({ language: slug })),
   [`/learn/${slug}/hosts`]: () => HostScreen(params({ language: slug, host: firstHost })),
   ...Object.fromEntries(
-    getHosts(slug).map((h) => [
+    allHosts.map((h) => [
       `/learn/${slug}/hosts/${h.slug}`,
       () => HostScreen(params({ language: slug, host: h.slug })),
     ]),
   ),
   ...Object.fromEntries(
-    getVideos(slug).map((v) => [
+    allVideos.map((v) => [
       `/learn/${slug}/watch/${v.slug}`,
       () => WatchScreen(params({ language: slug, video: v.slug })),
     ]),

@@ -3,6 +3,11 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getVideo } from "@/lib/content";
 
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../../helpers/content-db");
+  return { db: () => contentDb.db };
+});
+
 // The watch page decides access on the server before it reads or sends the playback id, tokens or transcript.
 
 const mocks = vi.hoisted(() => ({
@@ -50,8 +55,8 @@ vi.mock("@/components/watch/UpNext", () => ({ UpNext: () => null }));
 import { WatchScreen } from "@/components/screens/WatchScreen";
 
 const slug = "arabic-egyptian";
-const full = getVideo(slug, "a-day-at-a-wedding")!;
-const free = getVideo(slug, "at-the-cafe")!;
+const full = (await getVideo(slug, "a-day-at-a-wedding"))!;
+const free = (await getVideo(slug, "at-the-cafe"))!;
 const tokens = { playback: "TOKEN-V", thumbnail: "TOKEN-T", storyboard: "TOKEN-S" };
 const params = (video: string) => Promise.resolve({ language: slug, video });
 
@@ -62,7 +67,7 @@ beforeEach(() => {
   mocks.getLayers.mockResolvedValue({ script: true, tashkeel: true, transliteration: true, english: false });
   mocks.getAnswer.mockResolvedValue(undefined);
   mocks.getSubscription.mockResolvedValue(null);
-  mocks.getTranscriptView.mockReturnValue({ cues: [] });
+  mocks.getTranscriptView.mockResolvedValue({ cues: [] });
   mocks.signPlaybackTokens.mockReturnValue(tokens);
 });
 afterEach(cleanup);

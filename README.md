@@ -23,11 +23,23 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ## Adding content
 
-Videos, transcripts, glossaries and hosts are plain files under `content/<language-slug>/`
-(for example `content/arabic-egyptian/videos/at-the-cafe.json`). Every file is checked when the
-app is built, and invalid content fails the build with a message naming the file. The current
-Egyptian Arabic files are marked `sample`. See
-`specs/002-content-and-library/contracts/content-files.md` for the formats and an example of each.
+Videos, transcripts, glossaries and hosts now live in the database; learners only ever see **Approved**
+videos. The files under `content/<language-slug>/` (for example `content/arabic-egyptian/videos/at-the-cafe.json`)
+are the source of the one-time import of the sample content, and only `content/languages.json` stays live data.
+See `specs/002-content-and-library/contracts/content-files.md` for the file formats.
+
+## Creator programme data
+
+- **Owners**: set `OWNER_EMAILS` (comma-separated emails of the Instik team; see `.env.example`). Owners are never stored,
+  so removing an email withdraws the role at the next check. An owner invites creators at `/owner/creators`; the link
+  works once, lasts 7 days and must be opened signed in with the invited address.
+- **Import the sample content** into the database: `npm run import:content` (add `-- --dry-run` to see what would
+  happen, `-- --json` for a machine-readable report). It is safe to run again: rows that already exist are never
+  changed. A video whose transcript file is present but invalid is saved as a hidden Draft and reported; fix the file
+  and run again to complete it. Exit code `0` means nothing failed or is incomplete, `1` means something needs
+  attention, `2` means a setup problem (for example no `DATABASE_URL`).
+- The import runs with `tsx` (a dev dependency) because the validators and the generated Prisma client use
+  extensionless imports that plain Node cannot resolve.
 
 ## Video playback
 

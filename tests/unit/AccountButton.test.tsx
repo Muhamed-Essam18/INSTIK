@@ -43,6 +43,14 @@ describe("AccountButton", () => {
     expect(screen.getByRole("menuitem", { name: "Settings" }).getAttribute("href")).toBe("/settings");
   });
 
+  it("puts the role's panel entries first, before Settings and Sign out", () => {
+    render(<AccountButton initial="A" panels={[{ label: "Creator panel", href: "/creator" }]} />);
+    open();
+    const items = screen.getAllByRole("menuitem");
+    expect(items.map((i) => i.textContent)).toEqual(["Creator panel", "Settings", "Sign out"]);
+    expect(screen.getByRole("menuitem", { name: "Creator panel" }).getAttribute("href")).toBe("/creator");
+  });
+
   it("focuses the first item when it opens and moves with the arrow keys, Home and End", () => {
     render(<AccountButton initial="A" />);
     open();

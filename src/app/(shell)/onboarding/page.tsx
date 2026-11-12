@@ -34,8 +34,8 @@ async function OnboardingContent({ searchParams }: { searchParams: SearchParams 
 
   // When they were going to a video, say which one (never show it).
   const [, videoLanguage, videoSlug] = returnTo?.match(watchPath) ?? [];
-  const video = videoLanguage && videoSlug ? getVideo(videoLanguage, videoSlug) : undefined;
-  const host = video ? getHost(videoLanguage, video.host) : undefined;
+  const video = videoLanguage && videoSlug ? await getVideo(videoLanguage, videoSlug) : undefined;
+  const host = video ? await getHost(videoLanguage, video.host) : undefined;
   const preferredSlug = returnTo ? languageSlugFromPathname(returnTo.split("?")[0]) : undefined;
 
   return (

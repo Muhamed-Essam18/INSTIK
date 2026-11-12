@@ -24,6 +24,12 @@ export type BillingPeriod = "monthly" | "yearly";
 export const billingStartPath = (period: BillingPeriod) => `/billing/start?period=${period}`;
 export const billingPortalPath = (flow?: "cancel") => (flow ? `/billing/portal?flow=${flow}` : "/billing/portal");
 export const billingReturnPath = () => "/billing/return";
+/** How long a creator invitation link works, in days. */
+export const INVITE_LIFETIME_DAYS = 7;
+export const invitePath = (token: string) => `/invite/${token}`;
+export const creatorPath = () => "/creator";
+export const ownerPath = () => "/owner";
+export const ownerCreatorsPath = () => "/owner/creators";
 export const aboutPath = () => "/about";
 export const privacyPath = () => "/privacy";
 export const howItWorksPath = () => "/#how-it-works";

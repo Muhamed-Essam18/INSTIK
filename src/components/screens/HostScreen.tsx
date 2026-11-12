@@ -13,12 +13,16 @@ import { watchVideoPath } from "@/lib/routes";
 export async function HostScreen({ params }: { params: Promise<{ language: string; host: string }> }) {
   const { language: slug, host: hostSlug } = await params;
   const language = getLanguageBySlug(slug);
-  const host = getHost(slug, hostSlug);
+  const host = await getHost(slug, hostSlug);
   if (!language || !host) notFound();
 
-  const hosts = getHosts(slug);
-  const videos = getLibraryVideos(slug).filter((v) => v.hostSlug === host.slug);
-  const hello = getVideosByHost(slug, host.slug)[0]; // lowest stage first
+  const [hosts, libraryVideos, hostVideos] = await Promise.all([
+    getHosts(slug),
+    getLibraryVideos(slug),
+    getVideosByHost(slug, host.slug),
+  ]);
+  const videos = libraryVideos.filter((v) => v.hostSlug === host.slug);
+  const hello = hostVideos[0]; // lowest stage first
 
   return (
     <div className="flex flex-col gap-space-12">

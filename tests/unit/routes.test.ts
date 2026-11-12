@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  INVITE_LIFETIME_DAYS,
+  creatorPath,
+  invitePath,
+  ownerCreatorsPath,
+  ownerPath,
   billingPortalPath,
   billingReturnPath,
   billingStartPath,
@@ -71,5 +76,15 @@ describe("billing paths", () => {
     expect(billingPortalPath()).toBe("/billing/portal");
     expect(billingPortalPath("cancel")).toBe("/billing/portal?flow=cancel");
     expect(billingReturnPath()).toBe("/billing/return");
+  });
+});
+
+describe("creator programme paths", () => {
+  it("builds the invite, creator and owner paths", () => {
+    expect(invitePath("abc_123")).toBe("/invite/abc_123");
+    expect(creatorPath()).toBe("/creator");
+    expect(ownerPath()).toBe("/owner");
+    expect(ownerCreatorsPath()).toBe("/owner/creators");
+    expect(INVITE_LIFETIME_DAYS).toBe(7);
   });
 });

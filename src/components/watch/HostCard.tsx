@@ -1,10 +1,10 @@
 import Link from "next/link";
-import type { Host } from "@/lib/content/schema";
+import type { PublicHost } from "@/lib/content/mappers";
 import { hostPath } from "@/lib/routes";
 
 type Props = {
   languageSlug: string;
-  host: Host;
+  host: PublicHost;
   /** The first host gets the sun-coloured initial, the rest teal (as on the host page). */
   first?: boolean;
 };

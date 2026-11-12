@@ -19,6 +19,12 @@ export async function listProfiles(userId: string): Promise<Profile[]> {
   return rows.map(toProfile);
 }
 
+/** The learner's own time zone setting, or null when they have not set one. */
+export async function getTimeZone(userId: string): Promise<string | null> {
+  const row = await db().user.findUnique({ where: { id: userId }, select: { timeZone: true } });
+  return row?.timeZone ?? null;
+}
+
 export async function getProfile(userId: string, languageCode: string): Promise<Profile | undefined> {
   const row = await db().learnerLanguage.findUnique({ where: { userId_languageCode: { userId, languageCode } } });
   return row ? toProfile(row) : undefined;

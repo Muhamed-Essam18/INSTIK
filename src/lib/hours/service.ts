@@ -87,7 +87,7 @@ export type HeartbeatResult =
 
 export async function recordHeartbeat(input: HeartbeatInput): Promise<HeartbeatResult> {
   const language = getLanguageByCode(input.languageCode);
-  const video = language && getVideo(language.slug, input.videoSlug);
+  const video = language && (await getVideo(language.slug, input.videoSlug));
   if (!language || !video) return { ok: false, code: "unknown-video" };
   const now = input.nowMs ?? Date.now();
 
@@ -176,7 +176,7 @@ export type EndOfVideoResult = { ok: true; showDone: boolean } | { ok: false; co
 /** Decides whether Done for today follows the video that just ended, and records the block when it does. */
 export async function endOfVideo(input: { userId: string; languageCode: string; videoSlug: string; nowMs?: number }): Promise<EndOfVideoResult> {
   const language = getLanguageByCode(input.languageCode);
-  const video = language && getVideo(language.slug, input.videoSlug);
+  const video = language && (await getVideo(language.slug, input.videoSlug));
   if (!language || !video) return { ok: false, code: "unknown-video" };
   const now = input.nowMs ?? Date.now();
 

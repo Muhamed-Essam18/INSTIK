@@ -1,11 +1,16 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { LockedVideo } from "@/components/billing/LockedVideo";
 import { getHosts } from "@/lib/content";
 
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../../helpers/content-db");
+  return { db: () => contentDb.db };
+});
+
 afterEach(cleanup);
 
-const host = getHosts("arabic-egyptian")[0];
+const host = (await getHosts("arabic-egyptian"))[0];
 const renderLocked = () =>
   render(
     <LockedVideo

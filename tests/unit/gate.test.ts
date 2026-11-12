@@ -8,6 +8,9 @@ describe("isProtectedPath", () => {
     "/learn/arabic-egyptian/done",
     "/settings",
     "/settings/add-language",
+    "/creator",
+    "/owner",
+    "/owner/creators",
   ])("protects %s", (path) => {
     expect(isProtectedPath(path)).toBe(true);
   });
@@ -22,6 +25,9 @@ describe("isProtectedPath", () => {
     "/learn/arabic-egyptian/hosts",
     "/learn/arabic-egyptian/hosts/mona",
     "/api/auth/session",
+    "/invite/abc_123",
+    "/creators",
+    "/owners",
   ])("leaves %s open", (path) => {
     expect(isProtectedPath(path)).toBe(false);
   });

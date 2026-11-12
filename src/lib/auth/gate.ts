@@ -4,6 +4,8 @@ const protectedShapes = [
   new RegExp(`^/learn/${slug}/roadmap$`),
   new RegExp(`^/learn/${slug}/done$`),
   /^\/settings(?:\/.*)?$/,
+  // The creator and owner areas: only a cheap cookie check here; the role is decided in the Data Access Layer.
+  /^\/(?:creator|owner)(?:\/.*)?$/,
 ];
 const watchShape = new RegExp(`^/learn/${slug}/watch/`);
 

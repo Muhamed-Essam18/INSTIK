@@ -66,7 +66,7 @@ export async function saveAnswer(
 ): Promise<SaveResult | "unknown-video"> {
   const language = getLanguageByCode(languageCode);
   if (!language) return "invalid";
-  if (!getVideos(language.slug).some((v) => v.slug === videoSlug)) return "unknown-video";
+  if (!(await getVideos(language.slug)).some((v) => v.slug === videoSlug)) return "unknown-video";
   if (!(await profileFor(userId, languageCode))) return "no-profile";
   await db().comprehensionAnswer.upsert({
     where: { userId_languageCode_videoSlug: { userId, languageCode, videoSlug } },

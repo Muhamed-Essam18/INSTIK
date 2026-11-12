@@ -61,7 +61,7 @@ export async function requireVideoAccess(learnerId: string, video: { access: str
  */
 export async function isVideoLocked(learnerId: string, languageCode: string, videoSlug: string): Promise<boolean> {
   const language = getLanguageByCode(languageCode);
-  const video = language ? getVideo(language.slug, videoSlug) : undefined;
+  const video = language ? await getVideo(language.slug, videoSlug) : undefined;
   if (!video) return false;
   return !(await requireVideoAccess(learnerId, video)).ok;
 }

@@ -14,6 +14,26 @@ enum Stage {
   JOIN_IN
 }
 
+enum Role {
+  LEARNER
+  CREATOR
+}
+
+enum VideoStatus {
+  DRAFT
+  UPLOADING
+  PROCESSING
+  IN_REVIEW
+  CHANGES_REQUESTED
+  REJECTED
+  APPROVED
+}
+
+enum VideoAccess {
+  FREE
+  FULL
+}
+
 enum Understood {
   MOSTLY
   SOME
@@ -32,6 +52,8 @@ model User {
   timeZone      String?
   remindersOn   Boolean   @default(false)
   hourSound     Boolean   @default(false)
+  // Creator programme: learner (default) or creator. Owner is never stored; it comes from OWNER_EMAILS.
+  role          Role      @default(LEARNER)
 
   accounts         Account[]
   sessions         Session[]
@@ -43,6 +65,10 @@ model User {
   // Billing: the Stripe customer for this learner (set when they first start checkout) and their subscription.
   stripeCustomerId String?               @unique
   subscription     Subscription?
+  host             Host?
+  statusEvents     VideoStatusEvent[]
+  invitesSent      CreatorInvite[]       @relation("InviteSender")
+  invitesUsed      CreatorInvite[]       @relation("InviteUser")
 }
 
 model Account {
@@ -254,4 +280,126 @@ model StripeEvent {
   processedAt    DateTime?
 
   @@index([outcome, receivedAt])
+}
+
+// A person shown with videos. Imported sample hosts have no userId; a creator profile has one and is that creator's public host page.
+model Host {
+  id           String   @id @default(cuid())
+  languageCode String
+  slug         String
+  name         String
+  nameArabic   String?
+  story        String
+  // 0 to 6 entries (checked in code); imported hosts have 1 to 6.
+  topics       String[]
+  photo        String?
+  order        Int
+  userId       String?  @unique
+  sample       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  videos Video[]
+
+  @@unique([languageCode, slug])
+  @@index([languageCode])
+}
+
+// A video: everything about it except the file. Learner tables refer to it by languageCode + slug (no foreign key on purpose).
+model Video {
+  id              String      @id @default(cuid())
+  languageCode    String
+  slug            String
+  title           String
+  titleArabic     String?
+  // A slug from src/lib/content/taxonomy.ts (stage and topic), checked in code.
+  stage           String
+  topic           String
+  hostId          String
+  // At least 1 (checked in code).
+  durationSeconds Int
+  access          VideoAccess
+  playbackId      String?
+  status          VideoStatus @default(DRAFT)
+  sample          Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  host     Host                @relation(fields: [hostId], references: [id])
+  segments TranscriptSegment[]
+  events   VideoStatusEvent[]
+
+  @@unique([languageCode, slug])
+  @@index([languageCode, status])
+  @@index([hostId])
+}
+
+// One time-coded transcript line. start and end are seconds with end > start (checked in code).
+model TranscriptSegment {
+  id              String  @id @default(cuid())
+  videoId         String
+  position        Int
+  start           Float
+  end             Float
+  script          String
+  transliteration String?
+  english         String?
+
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([videoId, position])
+}
+
+// A word in a language glossary. entryKey is the id used in the content file.
+model GlossaryEntry {
+  id              String  @id @default(cuid())
+  languageCode    String
+  entryKey        String
+  word            String
+  base            String
+  transliteration String
+  english         String
+  audio           String?
+
+  @@unique([languageCode, entryKey])
+}
+
+// Every status change of a video. Append-only: a database trigger refuses UPDATE and DELETE.
+model VideoStatusEvent {
+  id         String       @id @default(cuid())
+  videoId    String
+  fromStatus VideoStatus?
+  toStatus   VideoStatus
+  actorId    String?
+  // Who, readable later (the person's name at that moment, or "import" or "system"). Never empty.
+  actorLabel String
+  // At most 2,000 characters; required (not blank) for REJECTED and CHANGES_REQUESTED (checked in code).
+  note       String?
+  createdAt  DateTime     @default(now())
+
+  video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([videoId, createdAt])
+}
+
+// An owner's invitation to become a creator. The link token is never stored, only its SHA-256 hash.
+model CreatorInvite {
+  id          String    @id @default(cuid())
+  // 1 to 120 characters; email is trimmed and lower-cased (checked in code).
+  name        String
+  email       String
+  tokenHash   String    @unique
+  invitedById String
+  createdAt   DateTime  @default(now())
+  // createdAt plus 7 days.
+  expiresAt   DateTime
+  usedAt      DateTime?
+  usedById    String?
+  revokedAt   DateTime?
+
+  invitedBy User  @relation("InviteSender", fields: [invitedById], references: [id])
+  usedBy    User? @relation("InviteUser", fields: [usedById], references: [id], onDelete: SetNull)
+
+  @@index([email])
 }

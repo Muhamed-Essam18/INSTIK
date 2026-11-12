@@ -66,12 +66,11 @@ export async function importDevicePreferences(input: unknown): Promise<ImportRes
 
   const learner = await requireLearner(settingsPath());
   const account = await accountState(learner.id);
+  const videosByLanguage = await Promise.all(languages.map(async (l) => [l, (await getVideos(l.slug)).map((v) => v.slug)] as const));
   const merge = mergeDeviceChoices({
     device: parsed.data,
     ...account,
-    languages: Object.fromEntries(
-      languages.map((l) => [l.code, { layers: l.transcriptLayers, videos: getVideos(l.slug).map((v) => v.slug) }]),
-    ),
+    languages: Object.fromEntries(videosByLanguage.map(([l, videos]) => [l.code, { layers: l.transcriptLayers, videos }])),
   });
   const imported = await applyImport(learner.id, merge);
   return { ok: true, imported, remove: merge.remove };

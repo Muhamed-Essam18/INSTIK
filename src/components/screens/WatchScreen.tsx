@@ -25,7 +25,8 @@ import { requireProfile } from "@/lib/session";
 export async function WatchScreen({ params }: { params: Promise<{ language: string; video: string }> }) {
   const { language: slug, video: videoSlug } = await params;
   const language = getLanguageBySlug(slug);
-  const video = getVideo(slug, videoSlug);
+  // Only an Approved video is ever found here; any other status looks exactly like a missing page.
+  const video = await getVideo(slug, videoSlug);
   if (!language || !video) notFound();
 
   // Watching needs an account with a profile for this language; otherwise this redirects to sign up or add the language.
@@ -33,7 +34,8 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   // A profile for a language that is no longer available is kept; its videos say the language is on its way.
   if (watchAccess({ language, profile }) === "language-unavailable") return <ComingSoonNotice language={language} />;
 
-  const host = getHost(slug, video.host)!; // validated at build: every video has a host
+  const [host, hosts] = await Promise.all([getHost(slug, video.host), getHosts(slug)]);
+  if (!host) notFound(); // every video shows its host
   const stage = stageLabel(video.stage);
   const languageName = [language.variety, language.name].filter(Boolean).join(" ");
 
@@ -46,7 +48,7 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
         title={video.title}
         meta={`${stage} · ${formatLength(video.durationSeconds)} · ${languageName}`}
         host={host}
-        firstHost={getHosts(slug)[0]?.slug === host.slug}
+        firstHost={hosts[0]?.slug === host.slug}
       />
     );
   }
@@ -59,7 +61,8 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   ]);
 
   // Up next shows locked videos as locked, and autoplay only ever moves on to one the learner can watch.
-  const upNext = markLocked(getUpNextVideos(slug, video.slug), subscription, new Date());
+  const upNext = markLocked(await getUpNextVideos(slug, video.slug), subscription, new Date());
+  const transcriptView = await getTranscriptView(slug, video.slug);
   const next = upNext.find((v) => !v.locked);
   const playbackTokens = signPlaybackTokens(video) ?? undefined;
 
@@ -88,7 +91,7 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
                 {stage} · {formatLength(video.durationSeconds)} · {languageName}
               </p>
             </div>
-            <HostCard languageSlug={slug} host={host} first={getHosts(slug)[0]?.slug === host.slug} />
+            <HostCard languageSlug={slug} host={host} first={hosts[0]?.slug === host.slug} />
           </div>
 
           <UnderstandingCheck language={language} videoSlug={video.slug} initialAnswer={initialAnswer} />
@@ -98,7 +101,7 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
 
         <TranscriptPanel
           language={language}
-          view={getTranscriptView(slug, video.slug)}
+          view={transcriptView}
           initialLayers={initialLayers}
         />
       </div>

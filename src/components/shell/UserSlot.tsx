@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { languages } from "@/lib/languages";
 import { signInPath } from "@/lib/routes";
-import { getLearner } from "@/lib/session";
+import { panelLinksFor } from "@/lib/roles/panels";
+import { getActor, getLearner } from "@/lib/session";
 import { AccountButton } from "./AccountButton";
 import { DeviceImport } from "./DeviceImport";
 
@@ -24,9 +25,12 @@ export async function UserSlot() {
       </Link>
     );
   }
+  // The role is read again on every request (never kept in the session), so a changed role shows at the next page.
+  // If it cannot be read the menu simply has no panel entry; the pages still check the role themselves.
+  const actor = await getActor().catch(() => null);
   return (
     <>
-      <AccountButton initial={initialFor(learner)} />
+      <AccountButton initial={initialFor(learner)} panels={actor ? panelLinksFor(actor.role) : []} />
       <DeviceImport languages={languages.map(({ slug, code }) => ({ slug, code }))} />
     </>
   );

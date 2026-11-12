@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ findMany: vi.fn() }));
-vi.mock("@/lib/db", () => ({ db: () => ({ videoProgress: { findMany: mocks.findMany } }) }));
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../../helpers/content-db");
+  return { db: () => ({ ...contentDb.db, videoProgress: { findMany: mocks.findMany } }) };
+});
 
 import { getLibraryProgress } from "@/lib/hours/queries";
 

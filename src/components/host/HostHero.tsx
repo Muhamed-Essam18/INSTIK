@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { TargetText } from "@/components/TargetText";
-import type { Host } from "@/lib/content/schema";
+import type { PublicHost } from "@/lib/content/mappers";
 import type { Language } from "@/lib/languages.schema";
 
 type Props = {
   language: Language;
-  host: Host;
+  host: PublicHost;
   /** The video behind "Watch … say hello"; the action is left out when the host has none. */
   helloHref?: string;
   /** The first host gets the sun-coloured placeholder, the rest teal. */
@@ -31,19 +31,24 @@ export function HostHero({ language, host, helloHref, first = false }: Props) {
       <div className="flex flex-[1_1_420px] flex-col gap-space-4">
         <span className="text-label text-teal-text">{label}</span>
         <h1 className="m-0 font-display text-[56px] leading-[60px] font-extrabold">{host.name}</h1>
-        <span className="self-start">
-          <TargetText language={language} sizeClass="text-[24px] leading-9 font-medium">
-            {host.nameArabic}
-          </TargetText>
-        </span>
-        <p className="m-0 text-body-lg">{host.story}</p>
-        <ul aria-label="Topics" className="m-0 flex list-none flex-wrap gap-space-2 p-0">
-          {host.topics.map((topic) => (
-            <li key={topic} className="rounded-pill bg-paper px-3 py-1.5 text-label">
-              {topic}
-            </li>
-          ))}
-        </ul>
+        {host.nameArabic ? (
+          <span className="self-start">
+            <TargetText language={language} sizeClass="text-[24px] leading-9 font-medium">
+              {host.nameArabic}
+            </TargetText>
+          </span>
+        ) : null}
+        {/* A new creator may not have written their story yet: say so kindly instead of leaving a gap. */}
+        <p className="m-0 text-body-lg">{host.story.trim() ? host.story : "Their story is coming soon."}</p>
+        {host.topics.length > 0 ? (
+          <ul aria-label="Topics" className="m-0 flex list-none flex-wrap gap-space-2 p-0">
+            {host.topics.map((topic) => (
+              <li key={topic} className="rounded-pill bg-paper px-3 py-1.5 text-label">
+                {topic}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {helloHref ? (
           <Link
             href={helloHref}

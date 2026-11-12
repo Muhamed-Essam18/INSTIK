@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sanitiseReturnTo } from "@/lib/auth/return-to";
+import { isStaffPath, sanitiseReturnTo } from "@/lib/auth/return-to";
 
 const FALLBACK = "/learn/arabic-egyptian";
 
@@ -17,6 +17,10 @@ describe("sanitiseReturnTo", () => {
     "/pricing",
     "/billing/start?period=monthly",
     "/billing/start?period=yearly",
+    "/invite/Zm9vYmFyYmF6cXV4Zm9vYmFyYmF6cXV4Zm9vYmFyYmF6",
+    "/creator",
+    "/owner",
+    "/owner/creators",
   ])("accepts %s", (path) => {
     expect(sanitiseReturnTo(path, FALLBACK)).toBe(path);
   });
@@ -36,6 +40,10 @@ describe("sanitiseReturnTo", () => {
     "/billing/start?period=yearly&x=1",
     "/billing/return?session_id=cs_x",
     "/billing/portal",
+    "/invite/short",
+    "/invite/abc/def",
+    "/owner/anything-else",
+    "/creator/videos",
     "/api/stripe/webhook",
     "/learn/arabic-egyptian/../../etc",
     "/learn//watch",
@@ -49,5 +57,12 @@ describe("sanitiseReturnTo", () => {
     expect(sanitiseReturnTo(["/settings"], FALLBACK)).toBe(FALLBACK);
     expect(sanitiseReturnTo(null, FALLBACK)).toBe(FALLBACK);
     expect(sanitiseReturnTo(42, FALLBACK)).toBe(FALLBACK);
+  });
+});
+
+describe("isStaffPath", () => {
+  it("is true for invitations and the creator and owner areas only", () => {
+    for (const p of ["/invite/abc", "/creator", "/owner", "/owner/creators"]) expect(isStaffPath(p)).toBe(true);
+    for (const p of ["/", "/learn/arabic-egyptian", "/creators", "/owners", "/settings", undefined]) expect(isStaffPath(p)).toBe(false);
   });
 });

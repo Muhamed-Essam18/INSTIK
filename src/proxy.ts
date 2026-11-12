@@ -18,5 +18,7 @@ export const config = {
     "/learn/:language/roadmap",
     "/learn/:language/done",
     "/settings/:path*",
+    "/creator/:path*",
+    "/owner/:path*",
   ],
 };

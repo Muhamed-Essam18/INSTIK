@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { HostCard } from "@/components/watch/HostCard";
 import { coralButton } from "@/components/marketing/buttons";
-import type { Host } from "@/lib/content/schema";
+import type { PublicHost } from "@/lib/content/mappers";
 import { libraryPath, pricingPath } from "@/lib/routes";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
   title: string;
   /** "Hear it · 8:40 · Egyptian Arabic", the same line the player page shows. */
   meta: string;
-  host: Host;
+  host: PublicHost;
   firstHost?: boolean;
 };
 

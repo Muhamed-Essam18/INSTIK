@@ -3,6 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PickUpBanner } from "@/components/library/PickUpBanner";
 import { LibraryProgress } from "@/components/screens/LibraryProgress";
 import { getVideos } from "@/lib/content";
+import { getLibraryVideos } from "@/lib/content/library";
+
+vi.mock("@/lib/db", async () => {
+  const { contentDb } = await import("../../helpers/content-db");
+  return { db: () => contentDb.db };
+});
 
 const mocks = vi.hoisted(() => ({ learner: vi.fn(), profile: vi.fn(), progress: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getLearner: mocks.learner }));
@@ -20,7 +26,8 @@ vi.mock("@/lib/billing/subscription", () => ({
 }));
 
 const slug = "arabic-egyptian";
-const videos = getVideos(slug);
+const videos = await getVideos(slug);
+const libraryVideos = await getLibraryVideos(slug);
 const first = videos[0];
 // The Library opens on the Follow it stage, so the watched video must be one of those.
 const second = videos.find((v) => v.stage === "follow-it")!;
@@ -32,7 +39,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-const renderProgress = async () => render(await LibraryProgress({ languageSlug: slug }));
+const renderProgress = async () => render(await LibraryProgress({ languageSlug: slug, videos: libraryVideos }));
 
 describe("Library banner and Watched labels", () => {
   it("shows the unfinished video with its time and host, linked with the start position", async () => {
@@ -78,13 +85,13 @@ describe("Library banner and Watched labels", () => {
     expect(screen.queryByText("Pick up where you left off")).toBeNull();
   });
 
-  it("the banner itself renders nothing without a pick-up", () => {
-    const { container } = render(<PickUpBanner languageSlug={slug} pickUp={null} />);
+  it("the banner itself renders nothing without a pick-up", async () => {
+    const { container } = render(await PickUpBanner({ languageSlug: slug, pickUp: null }));
     expect(container.textContent).toBe("");
   });
 
-  it("the banner ignores a video that no longer exists", () => {
-    const { container } = render(<PickUpBanner languageSlug={slug} pickUp={{ videoSlug: "gone", positionSeconds: 5 }} />);
+  it("the banner ignores a video that no longer exists", async () => {
+    const { container } = render(await PickUpBanner({ languageSlug: slug, pickUp: { videoSlug: "gone", positionSeconds: 5 } }));
     expect(container.textContent).toBe("");
   });
 });
