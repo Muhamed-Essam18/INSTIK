@@ -30,7 +30,7 @@ export async function UserSlot() {
   const actor = await getActor().catch(() => null);
   return (
     <>
-      <AccountButton initial={initialFor(learner)} panels={actor ? panelLinksFor(actor.role) : []} />
+      <AccountButton initial={initialFor(learner)} panels={actor ? panelLinksFor(actor) : []} />
       <DeviceImport languages={languages.map(({ slug, code }) => ({ slug, code }))} />
     </>
   );

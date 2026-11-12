@@ -28,7 +28,7 @@ describe("initialFor", () => {
 
 describe("UserSlot", () => {
   const learner = { id: "u1", email: "amal@example.com", name: "Amal", image: null };
-  const actor = (role: "learner" | "creator" | "owner") => ({ id: "u1", email: "amal@example.com", name: "Amal", role });
+  const actor = (role: "learner" | "creator" | "owner", isCreator = role === "creator") => ({ id: "u1", email: "amal@example.com", name: "Amal", role, isCreator });
   const menuLabels = async () => {
     render(await UserSlot());
     fireEvent.click(screen.getByRole("button", { name: "Your account" }));
@@ -53,6 +53,12 @@ describe("UserSlot", () => {
     expect(await menuLabels()).toEqual(["Creator panel", "Settings", "Sign out"]);
     mocks.getActor.mockResolvedValue(actor("owner"));
     expect(await menuLabels()).toEqual(["Owner panel", "Settings", "Sign out"]);
+  });
+
+  it("shows both panels to someone who is an owner and a creator", async () => {
+    mocks.getLearner.mockResolvedValue(learner);
+    mocks.getActor.mockResolvedValue(actor("owner", true));
+    expect(await menuLabels()).toEqual(["Creator panel", "Owner panel", "Settings", "Sign out"]);
   });
 
   it("reads the role again on every render: a role that changes shows at the next page", async () => {

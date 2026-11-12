@@ -7,7 +7,7 @@ import { gateRedirect } from "@/lib/auth/gate";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import type { Profile } from "@/lib/learner/profile-rules";
-import type { Actor } from "@/lib/roles/actor";
+import { hasRole, type Actor } from "@/lib/roles/actor";
 import { parseOwnerEmails, resolveRole, type RoleName } from "@/lib/roles/rules";
 import { addLanguagePath } from "@/lib/routes";
 
@@ -57,7 +57,7 @@ export const getActor = cache(async (): Promise<Actor | null> => {
   const row = await db().user.findUnique({ where: { id: learner.id }, select: { role: true } });
   if (!row) return null;
   const role = resolveRole({ email: learner.email, role: row.role }, parseOwnerEmails(env().OWNER_EMAILS));
-  return { id: learner.id, email: learner.email, name: learner.name, role };
+  return { id: learner.id, email: learner.email, name: learner.name, role, isCreator: row.role === "CREATOR" };
 });
 
 /**
@@ -70,7 +70,7 @@ export async function requireRole(role: RoleName, returnTo: string): Promise<Act
     const [pathname, ...rest] = returnTo.split("?");
     redirect(gateRedirect(pathname, rest.length ? `?${rest.join("?")}` : ""));
   }
-  if (actor.role !== role) notFound();
+  if (!hasRole(actor, role)) notFound();
   return actor;
 }
 

@@ -68,6 +68,15 @@ describe("a creator", () => {
     await expect(requireOwner("/owner")).rejects.toThrow("NOT_FOUND");
     expect((await requireCreator("/creator")).role).toBe("creator");
   });
+
+  it("shows up right after the invite is accepted: the same session, the role read again", async () => {
+    mocks.findUnique.mockResolvedValue({ role: "LEARNER" });
+    expect((await getActor())?.role).toBe("learner");
+    await expect(requireCreator("/creator")).rejects.toThrow("NOT_FOUND");
+    mocks.findUnique.mockResolvedValue({ role: "CREATOR" }); // the invite is accepted; the session cookie is untouched
+    expect((await getActor())?.role).toBe("creator");
+    expect((await requireCreator("/creator")).role).toBe("creator");
+  });
 });
 
 describe("an owner", () => {
@@ -76,6 +85,13 @@ describe("an owner", () => {
   it("passes the owner gate and is turned away from the creator area", async () => {
     expect((await requireOwner("/owner")).role).toBe("owner");
     await expect(requireCreator("/creator")).rejects.toThrow("NOT_FOUND");
+  });
+
+  it("passes both gates when the same account is also a creator", async () => {
+    mocks.findUnique.mockResolvedValue({ role: "CREATOR" });
+    expect((await requireOwner("/owner")).role).toBe("owner");
+    const actor = await requireCreator("/creator");
+    expect(actor).toMatchObject({ role: "owner", isCreator: true });
   });
 
   it("loses owner access at the next check when the email leaves the list", async () => {
