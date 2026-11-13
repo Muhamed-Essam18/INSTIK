@@ -1,5 +1,5 @@
 import type { Actor } from "@/lib/roles/actor";
-import { automaticNote, checkTransition, type ActorKind, type VideoStatusName } from "./status";
+import { TOO_LONG_NOTE, automaticNote, checkTransition, type ActorKind, type VideoStatusName } from "./status";
 import { prismaStatusStore } from "./status-store";
 
 // Changes a video's status and records it (spec FR-018 to FR-021, FR-030). The rules are in status.ts; this decides who
@@ -67,9 +67,10 @@ export function createStatusService(deps: { store: StatusStore }) {
           throw new Abort({ ok: false, reason: "not-found" });
         }
 
-        // A failed processing is always recorded with the automatic note, whatever the caller passed: the creator is told
-        // the same plain thing every time.
-        const note = (kind === "system" ? automaticNote(video.status, input.to) : null) ?? (input.note?.trim() || null);
+        // A failed upload or processing is recorded with the automatic note, whatever the caller passed (a host error text must
+        // never reach the creator); the one exception is the fixed, kind too-long note.
+        const given = input.note?.trim() || null;
+        const note = kind === "system" && given !== TOO_LONG_NOTE ? (automaticNote(video.status, input.to) ?? given) : given;
         const check = checkTransition({ from: video.status, to: input.to, by: kind, note });
         if (!check.ok) throw new Abort({ ok: false, reason: check.reason });
 

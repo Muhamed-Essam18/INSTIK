@@ -27,14 +27,32 @@ export type FakeVideo = {
   slug: string;
   title: string;
   titleArabic: string | null;
-  stage: string;
-  topic: string;
+  stage: string | null;
+  topic: string | null;
   hostId: string;
-  durationSeconds: number;
+  durationSeconds: number | null;
   access: "FREE" | "FULL";
   playbackId: string | null;
   status: string;
   sample: boolean;
+  // Creator upload columns (spec 9). Imported videos have none of them set.
+  proposedStage: string | null;
+  description: string | null;
+  muxUploadId: string | null;
+  muxAssetId: string | null;
+  assetReadyAt: Date | null;
+  submittedAt: Date | null;
+  checklistAcceptedAt: Date | null;
+  uploadStartedAt: Date | null;
+  pendingUploadId: string | null;
+  pendingAssetId: string | null;
+  pendingPlaybackId: string | null;
+  pendingDurationSeconds: number | null;
+  pendingReadyAt: Date | null;
+  pendingStartedAt: Date | null;
+  pendingFailure: string | null;
+  deletedAt: Date | null;
+  updatedAt: Date;
 };
 export type FakeSegment = {
   videoId: string;
@@ -63,6 +81,27 @@ export type FakeGlossary = {
   transliteration: string;
   english: string;
   audio: string | null;
+};
+
+/** The creator upload columns of a video that has never been through the creator panel. */
+const blankCreatorColumns = {
+  proposedStage: null,
+  description: null,
+  muxUploadId: null,
+  muxAssetId: null,
+  assetReadyAt: null,
+  submittedAt: null,
+  checklistAcceptedAt: null,
+  uploadStartedAt: null,
+  pendingUploadId: null,
+  pendingAssetId: null,
+  pendingPlaybackId: null,
+  pendingDurationSeconds: null,
+  pendingReadyAt: null,
+  pendingStartedAt: null,
+  pendingFailure: null,
+  deletedAt: null,
+  updatedAt: new Date(0),
 };
 
 type Row = Record<string, unknown>;
@@ -108,6 +147,7 @@ function build() {
         playbackId: v.playbackId ?? null,
         status: "APPROVED",
         sample: v.sample ?? false,
+        ...blankCreatorColumns,
       });
       (lc.transcripts[v.slug] ?? []).forEach((line, position) =>
         segments.push({ videoId: id, position, start: line.start, end: line.end, script: line.script, transliteration: line.transliteration, english: line.english }),
@@ -144,7 +184,13 @@ export function createContentDb() {
     });
   }
 
-  const withHost = (v: FakeVideo) => ({ ...v, host: { slug: hostOf(v).slug } });
+  // Prisma's `events: { orderBy: { createdAt: "desc" }, take: 1 }` on a video: its newest history entry only.
+  const newestEvent = (v: FakeVideo) =>
+    state.events
+      .filter((e) => e.videoId === v.id)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, 1);
+  const withHost = (v: FakeVideo) => ({ ...v, host: { slug: hostOf(v).slug }, events: newestEvent(v) });
   const withSegments = (v: FakeVideo) => ({
     ...withHost(v),
     segments: state.segments.filter((s) => s.videoId === v.id).sort((a, b) => a.position - b.position),
@@ -185,6 +231,12 @@ export function createContentDb() {
     /** Back to the sample content with every video Approved. */
     reset() {
       state = build();
+    },
+    /** Marks a video as soft-deleted (or clears it with null). */
+    setDeletedAt(languageCode: string, slug: string, deletedAt: Date | null) {
+      const v = state.videos.find((x) => x.languageCode === languageCode && x.slug === slug);
+      if (!v) throw new Error(`no video ${slug}`);
+      v.deletedAt = deletedAt;
     },
     setStatus(languageCode: string, slug: string, status: string) {
       const v = state.videos.find((x) => x.languageCode === languageCode && x.slug === slug);
@@ -231,6 +283,7 @@ export function createContentDb() {
         playbackId: null,
         status: "DRAFT",
         sample: false,
+        ...blankCreatorColumns,
         ...video,
       };
       state.videos.push(row);

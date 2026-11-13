@@ -19,7 +19,7 @@ beforeEach(() => contentDb.reset());
 
 describe("the filter", () => {
   it("is exactly Approved", () => {
-    expect(approvedOnly).toEqual({ status: "APPROVED" });
+    expect(approvedOnly).toEqual({ status: "APPROVED", deletedAt: null });
   });
 });
 
@@ -49,6 +49,29 @@ describe.each(statuses)("a video that is %s", (status) => {
   it("does not hide the other videos", async () => {
     expect((await getVideos(slug)).map((v) => v.slug)).toEqual(expect.arrayContaining(others));
     expect(await getVideos(slug)).toHaveLength(7);
+  });
+});
+
+describe("a soft-deleted video", () => {
+  beforeEach(() => contentDb.setDeletedAt(code, hidden, new Date()));
+
+  it("is hidden everywhere even if its status were Approved, and does not hide the others", async () => {
+    expect(await getVideo(slug, hidden)).toBeUndefined();
+    expect((await getVideos(slug)).map((v) => v.slug)).not.toContain(hidden);
+    expect((await getLibraryVideos(slug)).map((v) => v.slug)).not.toContain(hidden);
+    expect(await getTranscript(slug, hidden)).toBeUndefined();
+    expect((await getVideos(slug)).map((v) => v.slug)).toEqual(expect.arrayContaining(others));
+  });
+});
+
+describe("a new creator video that is ready to submit", () => {
+  it("never shows: a Processing video with a ready asset, and a Changes requested video with a pending file", async () => {
+    contentDb.setStatus(code, hidden, "PROCESSING");
+    contentDb.state.videos.find((v) => v.slug === hidden)!.assetReadyAt = new Date();
+    expect(await getVideo(slug, hidden)).toBeUndefined();
+    contentDb.setStatus(code, hidden, "CHANGES_REQUESTED");
+    contentDb.state.videos.find((v) => v.slug === hidden)!.pendingReadyAt = new Date();
+    expect(await getVideo(slug, hidden)).toBeUndefined();
   });
 });
 

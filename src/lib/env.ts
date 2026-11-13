@@ -19,6 +19,12 @@ const envSchema = z.object({
   BILLING_LIVE: z.literal("true").optional(),
   MUX_SIGNING_KEY_ID: z.string().min(1).optional(),
   MUX_SIGNING_PRIVATE_KEY: z.string().min(1).optional(),
+  // Creator uploads: Mux API access (create direct uploads, delete assets) and the webhook signing secret; all three or none.
+  MUX_TOKEN_ID: z.string().min(1).optional(),
+  MUX_TOKEN_SECRET: z.string().min(1).optional(),
+  MUX_WEBHOOK_SECRET: z.string().min(1).optional(),
+  // Vercel Blob read/write token for host photos.
+  BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
   // Comma-separated emails of the Instik team. They get the owner role. Optional: unset means no owners.
   OWNER_EMAILS: z.string().optional(),
 }).superRefine((value, ctx) => {
@@ -31,6 +37,12 @@ const envSchema = z.object({
   if (Boolean(value.MUX_SIGNING_KEY_ID) !== Boolean(value.MUX_SIGNING_PRIVATE_KEY)) {
     const missing = value.MUX_SIGNING_KEY_ID ? "MUX_SIGNING_PRIVATE_KEY" : "MUX_SIGNING_KEY_ID";
     ctx.addIssue({ code: "custom", path: [missing], message: "set both Mux signing settings or neither" });
+  }
+  // The three Mux upload settings only work together.
+  const uploadSettings = [value.MUX_TOKEN_ID, value.MUX_TOKEN_SECRET, value.MUX_WEBHOOK_SECRET];
+  if (uploadSettings.some(Boolean) && !uploadSettings.every(Boolean)) {
+    const name = !value.MUX_TOKEN_ID ? "MUX_TOKEN_ID" : !value.MUX_TOKEN_SECRET ? "MUX_TOKEN_SECRET" : "MUX_WEBHOOK_SECRET";
+    ctx.addIssue({ code: "custom", path: [name], message: "set all three Mux upload settings or none" });
   }
 });
 

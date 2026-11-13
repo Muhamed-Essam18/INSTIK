@@ -23,6 +23,16 @@ describe("parseEnv", () => {
     expect(parseEnv({ ...valid, OWNER_EMAILS: "a@x.com,b@x.com" }).OWNER_EMAILS).toBe("a@x.com,b@x.com");
   });
 
+  it("treats the Mux upload settings and the Blob token as optional, but the three Mux values only together", () => {
+    const parsed = parseEnv(valid);
+    expect(parsed.MUX_TOKEN_ID).toBeUndefined();
+    expect(parsed.BLOB_READ_WRITE_TOKEN).toBeUndefined();
+    const all = { MUX_TOKEN_ID: "id", MUX_TOKEN_SECRET: "secret", MUX_WEBHOOK_SECRET: "whsec" };
+    expect(parseEnv({ ...valid, ...all }).MUX_TOKEN_ID).toBe("id");
+    expect(() => parseEnv({ ...valid, MUX_TOKEN_ID: "id" })).toThrow(/MUX_TOKEN_SECRET/);
+    expect(() => parseEnv({ ...valid, ...all, MUX_WEBHOOK_SECRET: "" })).toThrow(/MUX_WEBHOOK_SECRET/);
+  });
+
   it("treats AUTH_URL as optional", () => {
     expect(parseEnv(valid).AUTH_URL).toBeUndefined();
     expect(parseEnv({ ...valid, AUTH_URL: "https://instik.example" }).AUTH_URL).toBe("https://instik.example");

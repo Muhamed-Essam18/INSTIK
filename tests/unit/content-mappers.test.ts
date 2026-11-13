@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { toGlossaryEntry, toHost, toTranscriptLines, toVideo } from "@/lib/content/mappers";
+import { describe, expect, it, vi } from "vitest";
+import { toGlossaryEntry, toHost, toTranscriptLines, toVideo, toVideoOrNull } from "@/lib/content/mappers";
 
 const videoRow = {
   slug: "at-the-cafe",
@@ -36,6 +36,23 @@ describe("toVideo", () => {
     expect(video).not.toHaveProperty("titleArabic");
     expect(video).not.toHaveProperty("playbackId");
     expect(video).not.toHaveProperty("sample");
+  });
+});
+
+describe("toVideoOrNull", () => {
+  it("maps a complete row like toVideo", () => {
+    expect(toVideoOrNull(videoRow)).toEqual(toVideo(videoRow));
+  });
+
+  it.each([
+    ["stage", { stage: null }],
+    ["topic", { topic: null }],
+    ["length", { durationSeconds: null }],
+  ])("skips and logs a row without a %s", (_name, missing) => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(toVideoOrNull({ ...videoRow, ...missing })).toBeNull();
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("hidden"), { slug: "at-the-cafe" });
+    log.mockRestore();
   });
 });
 

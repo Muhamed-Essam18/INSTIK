@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   INVITE_LIFETIME_DAYS,
+  creatorHostPath,
   creatorPath,
+  creatorUploadPath,
+  creatorVideoEditPath,
+  creatorVideoPath,
+  creatorVideosPath,
   invitePath,
+  muxWebhookPath,
   ownerCreatorsPath,
   ownerPath,
   billingPortalPath,
@@ -86,5 +92,17 @@ describe("creator programme paths", () => {
     expect(ownerPath()).toBe("/owner");
     expect(ownerCreatorsPath()).toBe("/owner/creators");
     expect(INVITE_LIFETIME_DAYS).toBe(7);
+  });
+});
+
+describe("creator panel paths", () => {
+  it("builds the upload, videos, video, edit, host and webhook paths", () => {
+    expect(creatorUploadPath()).toBe("/creator/upload");
+    expect(creatorVideosPath()).toBe("/creator/videos");
+    expect(creatorVideosPath("changes")).toBe("/creator/videos?status=changes");
+    expect(creatorVideoPath("v1")).toBe("/creator/videos/v1");
+    expect(creatorVideoEditPath("v1")).toBe("/creator/videos/v1/edit");
+    expect(creatorHostPath()).toBe("/creator/host");
+    expect(muxWebhookPath()).toBe("/api/mux/webhook");
   });
 });

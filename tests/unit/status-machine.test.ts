@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   NOTE_MAX,
   PROCESSING_FAILED_NOTE,
+  TOO_LONG_NOTE,
   allowedNext,
   automaticNote,
   checkTransition,
@@ -20,7 +21,7 @@ describe("the status path", () => {
 
   it.each([
     ["DRAFT", ["UPLOADING"]],
-    ["UPLOADING", ["PROCESSING"]],
+    ["UPLOADING", ["PROCESSING", "DRAFT"]],
     ["PROCESSING", ["IN_REVIEW", "DRAFT"]],
     ["IN_REVIEW", ["APPROVED", "CHANGES_REQUESTED", "REJECTED"]],
     ["CHANGES_REQUESTED", ["UPLOADING", "IN_REVIEW"]],
@@ -66,15 +67,32 @@ describe("checkTransition: who may move", () => {
     }
   });
 
-  it("has one automatic note, for the processing failure only", () => {
+  it("has one automatic note, for a failed upload or failed processing (back to Draft) only", () => {
     expect(PROCESSING_FAILED_NOTE).toBe("The upload didn't work. Please try again.");
     expect(automaticNote("PROCESSING", "DRAFT")).toBe(PROCESSING_FAILED_NOTE);
+    expect(automaticNote("UPLOADING", "DRAFT")).toBe(PROCESSING_FAILED_NOTE);
     for (const from of videoStatuses) {
       for (const to of videoStatuses) {
-        if (from === "PROCESSING" && to === "DRAFT") continue;
+        if ((from === "PROCESSING" || from === "UPLOADING") && to === "DRAFT") continue;
         expect(automaticNote(from, to)).toBeNull();
       }
     }
+  });
+
+  it("has a fixed, kind note for a video that is too long", () => {
+    expect(TOO_LONG_NOTE).toBe("That video is longer than 30 minutes. Please upload a shorter one.");
+  });
+
+  it("lets only the system send a first upload back to Draft (cancelled, errored or expired)", () => {
+    expect(checkTransition({ from: "UPLOADING", to: "DRAFT", by: "system" })).toEqual({ ok: true });
+    expect(checkTransition({ from: "UPLOADING", to: "DRAFT", by: "creator" })).toEqual({ ok: false, reason: "forbidden" });
+    expect(checkTransition({ from: "UPLOADING", to: "DRAFT", by: "owner" })).toEqual({ ok: false, reason: "forbidden" });
+  });
+
+  it("lets a creator complete their own submission once processing is done, and nobody else", () => {
+    expect(checkTransition({ from: "PROCESSING", to: "IN_REVIEW", by: "creator" })).toEqual({ ok: true });
+    expect(checkTransition({ from: "PROCESSING", to: "IN_REVIEW", by: "system" })).toEqual({ ok: true });
+    expect(checkTransition({ from: "PROCESSING", to: "IN_REVIEW", by: "owner" })).toEqual({ ok: false, reason: "forbidden" });
   });
 
   it("lets a creator start an upload and upload again or resubmit after changes were requested", () => {

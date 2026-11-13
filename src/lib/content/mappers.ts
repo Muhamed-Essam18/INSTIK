@@ -31,6 +31,27 @@ type VideoRow = {
   host: { slug: string };
 };
 
+/** A row as the database returns it: drafts have no stage, topic or length yet. */
+type MaybeVideoRow = Omit<VideoRow, "stage" | "topic" | "durationSeconds"> & {
+  stage: string | null;
+  topic: string | null;
+  durationSeconds: number | null;
+};
+
+/**
+ * The learner shape of a row, or null when it lacks a stage, topic or length. Only Approved rows reach learners and the
+ * owner sets those before approving, so a null here is a data problem: the row is skipped and logged (its slug only)
+ * rather than crash a page.
+ */
+export function toVideoOrNull(row: MaybeVideoRow): Video | null {
+  const { stage, topic, durationSeconds } = row;
+  if (stage === null || topic === null || durationSeconds === null) {
+    console.error("[content] an approved video is missing its stage, topic or length and is hidden", { slug: row.slug });
+    return null;
+  }
+  return toVideo({ ...row, stage, topic, durationSeconds });
+}
+
 export function toVideo(row: VideoRow): Video {
   return {
     ...(row.sample ? { sample: true } : {}),

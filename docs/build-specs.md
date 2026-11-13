@@ -14,7 +14,7 @@ All specs in build order, each with the two messages you paste into Claude Code.
 | 6 | Landing, pricing, waitlist, About | Done | — |
 | 7 | Payments and access | In progress | Prices, free vs full split |
 | 8 | Roles, invites and content in the database | | Your owner email |
-| 9 | Creator upload (Mux direct upload) | | Mux access token, webhook tunnel for local testing |
+| 9 | Creator upload (Mux direct upload) | Built, needs the migration applied and a manual check with real Mux and Blob | Mux access token and webhook secret, Vercel Blob token, webhook tunnel for local testing |
 | 10 | Owner review, transcripts and creators | | Verified Resend domain for emails to creators |
 | 11 | Creator dashboard and earnings | | Stripe Tax set up (for net revenue) |
 | 12 | Automatic payouts (later) | Later | Stripe Connect, legal and tax advice |
@@ -210,6 +210,8 @@ Out of scope: the owner review screens, statistics and earnings.
 ---
 
 ## Spec 10 — Owner review, transcripts and creators
+
+**Carry over from spec 9** (see specs/009-creator-panel-upload): every owner read of videos must filter `deletedAt` (a creator can soft-delete a draft); extend `canUpload` in `src/lib/creator/can-upload.ts` so a paused creator cannot upload or submit; the owner sets the final `stage`, pre-filled from the creator's `proposedStage`; reuse the one state machine in `src/lib/content/status.ts`.
 
 **A. Specify**
 

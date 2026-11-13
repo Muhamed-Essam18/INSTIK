@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { getLanguageBySlug } from "@/lib/languages";
 import { buildGlossaryIndex, linkWords, type GlossaryIndex } from "./glossary-link";
-import { toGlossaryEntry, toHost, toTranscriptLines, toVideo, type PublicHost } from "./mappers";
+import { toGlossaryEntry, toHost, toTranscriptLines, toVideoOrNull, type PublicHost } from "./mappers";
 import type { Glossary, Video } from "./schema";
 import { stageOrder } from "./taxonomy";
 import type { TranscriptLine, TranscriptView } from "./transcript";
@@ -11,8 +11,12 @@ import type { TranscriptLine, TranscriptView } from "./transcript";
 // is not Approved cannot be returned by this module, and asking for one gives the same answer as a missing video.
 // Creator and owner reads live in creator-reads.ts and need an acting user.
 
-/** The one filter every learner-facing video query uses (constitution VIII). */
-export const approvedOnly = { status: "APPROVED" } as const;
+/** The one filter every learner-facing video query uses (constitution VIII). A soft-deleted video is never shown either. */
+export const approvedOnly = { status: "APPROVED", deletedAt: null } as const;
+
+type VideoRowIn = Parameters<typeof toVideoOrNull>[0];
+/** Maps rows to learner videos, leaving out any row that cannot be shown. */
+const toVideos = (rows: readonly VideoRowIn[]): Video[] => rows.flatMap((row) => toVideoOrNull(row) ?? []);
 
 /** Languages are addressed by slug in URLs and stored by code; an unknown slug has no content. */
 const codeOf = (slug: string): string | undefined => getLanguageBySlug(slug)?.code;
@@ -26,14 +30,14 @@ export async function getVideos(language: string): Promise<Video[]> {
   const languageCode = codeOf(language);
   if (!languageCode) return [];
   const rows = await db().video.findMany({ where: { languageCode, ...approvedOnly }, include: withHost });
-  return rows.map(toVideo).sort(byStageThenTitle);
+  return toVideos(rows).sort(byStageThenTitle);
 }
 
 export async function getVideo(language: string, slug: string): Promise<Video | undefined> {
   const languageCode = codeOf(language);
   if (!languageCode) return undefined;
   const row = await db().video.findFirst({ where: { languageCode, slug, ...approvedOnly }, include: withHost });
-  return row ? toVideo(row) : undefined;
+  return row ? (toVideoOrNull(row) ?? undefined) : undefined;
 }
 
 /**
@@ -64,7 +68,7 @@ export async function getVideosByHost(language: string, hostSlug: string): Promi
     where: { languageCode, host: { slug: hostSlug }, ...approvedOnly },
     include: withHost,
   });
-  return rows.map(toVideo).sort(byStageThenTitle);
+  return toVideos(rows).sort(byStageThenTitle);
 }
 
 export async function getTranscript(language: string, videoSlug: string): Promise<TranscriptLine[] | undefined> {

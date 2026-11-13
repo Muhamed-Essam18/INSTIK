@@ -71,7 +71,9 @@ describe("what the pages show", () => {
   it("shows nothing but an empty note on the creator and owner homes, and never reads videos or invitations", async () => {
     as("creator");
     render(await CreatorScreen());
-    expect(screen.getByText(/Nothing here yet/)).toBeTruthy();
+    expect(screen.getByText(/statistics will appear here once your videos are live/i)).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Upload a video" }).getAttribute("href")).toBe("/creator/upload");
+    expect(screen.getByRole("link", { name: "My videos" }).getAttribute("href")).toBe("/creator/videos");
     cleanup();
     as("owner");
     render(await OwnerScreen());

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createStatusService, type StatusActor, type StatusEventInput, type StatusStore, type StatusTx } from "@/lib/content/status-service";
-import type { VideoStatusName } from "@/lib/content/status";
+import { TOO_LONG_NOTE, type VideoStatusName } from "@/lib/content/status";
 import type { Actor } from "@/lib/roles/actor";
 
 type Event = StatusEventInput & { createdAt: Date };
@@ -165,6 +165,24 @@ describe("who may make which move", () => {
   it("uses the automatic note even when the caller passes another one", async () => {
     expect(await run("processing", "DRAFT", system, "ffmpeg exited with code 1")).toEqual({ ok: true });
     expect(mem.events[0].note).toBe("The upload didn't work. Please try again.");
+  });
+
+  it("keeps the fixed too-long note when the system sends a processed video back to Draft", async () => {
+    expect(await run("processing", "DRAFT", system, TOO_LONG_NOTE)).toEqual({ ok: true });
+    expect(mem.events[0].note).toBe(TOO_LONG_NOTE);
+  });
+
+  it("sends a first upload back to Draft with the automatic note (system only)", async () => {
+    mem.videos.set("up", { id: "up", status: "UPLOADING", hostUserId: "ann" });
+    expect(await run("up", "DRAFT", creator("ann"))).toEqual({ ok: false, reason: "forbidden" });
+    expect(await run("up", "DRAFT", system)).toEqual({ ok: true });
+    expect(mem.events[0]).toMatchObject({ fromStatus: "UPLOADING", toStatus: "DRAFT", note: "The upload didn't work. Please try again." });
+  });
+
+  it("lets a creator complete their own submission from Processing, credited to them, and not another creator's", async () => {
+    expect(await run("processing", "IN_REVIEW", creator("ben"))).toEqual({ ok: false, reason: "not-found" });
+    expect(await run("processing", "IN_REVIEW", creator("ann"))).toEqual({ ok: true });
+    expect(mem.events[0]).toMatchObject({ fromStatus: "PROCESSING", toStatus: "IN_REVIEW", actorId: "ann", actorLabel: "Ann" });
   });
 
   it("no longer lets processing go back to Uploading, and keeps a creator from failing it", async () => {

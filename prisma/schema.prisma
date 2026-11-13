@@ -310,18 +310,45 @@ model Video {
   id              String      @id @default(cuid())
   languageCode    String
   slug            String
-  title           String
+  // Empty until the creator types one; submit needs 1 to 120 characters (checked in code).
+  title           String      @default("")
   titleArabic     String?
-  // A slug from src/lib/content/taxonomy.ts (stage and topic), checked in code.
-  stage           String
-  topic           String
+  // The final stage, set by the owner in review (a slug from src/lib/content/taxonomy.ts, checked in code). Imported videos keep theirs.
+  stage           String?
+  // The stage the creator proposed (same slugs); the owner pre-fills the final stage from it.
+  proposedStage   String?
+  topic           String?
   hostId          String
-  // At least 1 (checked in code).
-  durationSeconds Int
-  access          VideoAccess
+  // At least 1 and at most 1,800 once set (checked in code); null until the video host has processed the file.
+  durationSeconds Int?
+  // Only the owner sets it; creators never choose.
+  access          VideoAccess @default(FULL)
   playbackId      String?
   status          VideoStatus @default(DRAFT)
   sample          Boolean     @default(false)
+  // Shown to learners under the video; up to 1,000 characters (checked in code); needed to submit.
+  description     String?
+  // The current file at the video host: its direct upload and asset. Never sent to the browser.
+  muxUploadId     String?
+  muxAssetId      String?
+  // Set by the video host notice when the current asset is ready.
+  assetReadyAt    DateTime?
+  // Set when the creator submits; completes once the asset is ready. Cleared when the submission completes or fails.
+  submittedAt     DateTime?
+  checklistAcceptedAt DateTime?
+  // When the current first upload link was created ("Upload didn't finish" after 75 minutes with no asset).
+  uploadStartedAt DateTime?
+  // A new version while in CHANGES_REQUESTED: held apart from the current file until the creator resubmits.
+  pendingUploadId        String?
+  pendingAssetId         String?
+  pendingPlaybackId      String?
+  pendingDurationSeconds Int?
+  pendingReadyAt         DateTime?
+  pendingStartedAt       DateTime?
+  // A plain message when the new version failed; up to 200 characters (checked in code); cleared when a new upload starts.
+  pendingFailure         String?
+  // Soft delete of a Draft: hidden everywhere, history kept.
+  deletedAt       DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 
@@ -332,6 +359,7 @@ model Video {
   @@unique([languageCode, slug])
   @@index([languageCode, status])
   @@index([hostId])
+  @@index([hostId, updatedAt])
 }
 
 // One time-coded transcript line. start and end are seconds with end > start (checked in code).

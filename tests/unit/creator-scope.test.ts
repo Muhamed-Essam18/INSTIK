@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getOwnPlayback,
   getOwnProfile,
   getOwnVideo,
   listAllVideos,
@@ -122,5 +123,84 @@ describe("the functions cannot be widened", () => {
     expect(listStatusHistory.length).toBe(2);
     expect(listAllVideos.length).toBe(1);
     expect(getOwnProfile.length).toBe(1);
+  });
+});
+
+describe("creator upload reads (spec 9)", () => {
+  const video = (slug: string) => contentDb.state.videos.find((v) => v.slug === slug)!;
+
+  it("leaves a soft-deleted video out of the list, the single read and the history, for its creator and for an owner", async () => {
+    video("ann-draft").deletedAt = new Date();
+    expect(slugs(await listOwnVideos(creatorA))).toEqual(["ann-live", "ann-review"]);
+    expect(await getOwnVideo(creatorA, ids.a[0])).toBeNull();
+    expect(await listStatusHistory(creatorA, ids.a[0])).toBeNull();
+    expect(slugs(await listAllVideos(owner))).not.toContain("ann-draft");
+    expect(await getOwnVideo(owner, ids.a[0])).toBeNull();
+  });
+
+  it("gives each video the note of its newest history entry, and none when that entry has no note", async () => {
+    const [draft, review] = [video("ann-draft"), video("ann-review")];
+    contentDb.addEvent({ videoId: draft.id, toStatus: "CHANGES_REQUESTED", note: "Please re-record the intro", createdAt: new Date(2026, 10, 5) });
+    contentDb.addEvent({ videoId: review.id, toStatus: "CHANGES_REQUESTED", note: "An old note", createdAt: new Date(2026, 10, 5) });
+    contentDb.addEvent({ videoId: review.id, toStatus: "IN_REVIEW", note: null, createdAt: new Date(2026, 10, 6) });
+    const notes = Object.fromEntries((await listOwnVideos(creatorA)).map((v) => [v.slug, v.latestNote]));
+    expect(notes["ann-draft"]).toBe("Please re-record the intro");
+    expect(notes["ann-review"]).toBeNull();
+  });
+
+  it("lists the most recently updated video first", async () => {
+    video("ann-draft").updatedAt = new Date(2026, 10, 3);
+    video("ann-review").updatedAt = new Date(2026, 10, 9);
+    video("ann-live").updatedAt = new Date(2026, 10, 6);
+    expect((await listOwnVideos(creatorA)).map((v) => v.slug)).toEqual(["ann-review", "ann-live", "ann-draft"]);
+  });
+
+  it("never hands the browser a Mux id: only whether a file exists", async () => {
+    const v = video("ann-draft");
+    v.muxAssetId = "asset-zzmux";
+    v.muxUploadId = "upload-zzmux";
+    v.pendingUploadId = "pending-upload-zzmux";
+    v.pendingAssetId = "pending-asset-zzmux";
+    v.playbackId = "playback-zzmux";
+    const read = await getOwnVideo(creatorA, ids.a[0]);
+    expect(read).toMatchObject({ hasAsset: true, hasPlayback: true, hasPendingUpload: true, hasPendingAsset: true });
+    const text = JSON.stringify([read, await listOwnVideos(creatorA)]);
+    expect(text).not.toContain("zzmux");
+  });
+
+  it("reports whether the host page is complete: a photo, both names and a story", async () => {
+    expect((await getOwnProfile(creatorA))?.complete).toBe(false);
+    const host = contentDb.state.hosts.find((h) => h.slug === "ann")!;
+    Object.assign(host, { photo: "https://blob.example/ann.jpg", nameArabic: "آن", story: "A story" });
+    expect((await getOwnProfile(creatorA))?.complete).toBe(true);
+    host.photo = null;
+    expect((await getOwnProfile(creatorA))?.complete).toBe(false);
+  });
+
+  it("keeps refusing a learner and another creator after the new fields", async () => {
+    await expect(getOwnVideo(learner, ids.a[0])).rejects.toBeInstanceOf(ForbiddenError);
+    expect(await getOwnVideo(creatorB, ids.a[0])).toBeNull();
+  });
+});
+
+describe("the history and the preview (spec 9)", () => {
+  it("marks the changes the asking creator made themselves as theirs, without handing out an id", async () => {
+    const [draft] = contentDb.state.videos.filter((v) => v.slug === "ann-draft");
+    contentDb.addEvent({ videoId: draft.id, fromStatus: "DRAFT", toStatus: "UPLOADING", actorId: "user-ann", actorLabel: "Ann", createdAt: new Date(2026, 10, 2) });
+    contentDb.addEvent({ videoId: draft.id, fromStatus: "UPLOADING", toStatus: "PROCESSING", actorId: null, actorLabel: "Instik", createdAt: new Date(2026, 10, 3) });
+    const history = (await listStatusHistory(creatorA, ids.a[0]))!;
+    expect(history.map((e) => [e.toStatus, e.byYou])).toEqual([["DRAFT", false], ["UPLOADING", true], ["PROCESSING", false]]);
+    expect(JSON.stringify(history)).not.toContain("user-ann");
+  });
+
+  it("gives a creator the playback id of their own video only", async () => {
+    const own = contentDb.state.videos.find((v) => v.slug === "ann-draft")!;
+    expect(await getOwnPlayback(creatorA, ids.a[0])).toBeNull();
+    own.playbackId = "pb-ann";
+    expect(await getOwnPlayback(creatorA, ids.a[0])).toEqual({ playbackId: "pb-ann", access: "FREE", durationSeconds: 300 });
+    expect(await getOwnPlayback(creatorB, ids.a[0])).toBeNull();
+    own.deletedAt = new Date();
+    expect(await getOwnPlayback(creatorA, ids.a[0])).toBeNull();
+    await expect(getOwnPlayback(learner, ids.a[0])).rejects.toBeInstanceOf(ForbiddenError);
   });
 });
