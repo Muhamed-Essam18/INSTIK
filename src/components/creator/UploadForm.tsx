@@ -9,6 +9,7 @@ import { stages, topics } from "@/lib/content/taxonomy";
 import { creatorHostPath, creatorVideoPath } from "@/lib/routes";
 import { Checklist } from "./Checklist";
 import { Field, describedBy } from "./Field";
+import { PAUSED_MESSAGE } from "@/lib/creator/messages";
 import { UploadProgress, type StartResult } from "./UploadProgress";
 
 // The upload page's form (docs/design/CreatorUpload.dc.html), also used to continue a draft and to edit a video in Changes requested.
@@ -32,13 +33,15 @@ type Props = {
   languageLabel: string;
   hostComplete: boolean;
   uploadsEnabled: boolean;
+  /** An owner has paused this creator: nothing can be uploaded, saved or submitted (the server refuses it too). */
+  paused?: boolean;
   /** Shown when the video host reports the first file as already on its way. */
   fileNote?: string;
 };
 
 const control = "h-[52px] rounded-sm border border-slate bg-paper px-space-3 text-body font-normal text-ink";
 
-export function UploadForm({ video, fileStep, languageLabel, hostComplete, uploadsEnabled, fileNote }: Props) {
+export function UploadForm({ video, fileStep, languageLabel, hostComplete, uploadsEnabled, paused = false, fileNote }: Props) {
   const router = useRouter();
   const ids = { title: useId(), stage: useId(), topic: useId(), language: useId(), description: useId() };
   const [videoId, setVideoId] = useState<string | undefined>(video?.id);
@@ -105,7 +108,13 @@ export function UploadForm({ video, fileStep, languageLabel, hostComplete, uploa
 
   return (
     <form onSubmit={submit} noValidate className="flex max-w-[720px] flex-col gap-space-6">
+      {paused && (
+        <p role="status" className="m-0 rounded-lg border border-hairline bg-paper p-space-4 text-body text-ink">
+          {PAUSED_MESSAGE}
+        </p>
+      )}
       {fileStep === "uploader" &&
+        !paused &&
         (uploadsEnabled ? (
           <div className="flex flex-col gap-space-2">
             <UploadProgress start={start} onPhase={setPhase} />
@@ -229,12 +238,12 @@ export function UploadForm({ video, fileStep, languageLabel, hostComplete, uploa
         <button
           type="button"
           onClick={save}
-          disabled={pending}
+          disabled={pending || paused}
           className="min-h-12 rounded-md border border-ink bg-paper px-space-6 text-body font-semibold text-ink disabled:opacity-60"
         >
           Save draft
         </button>
-        <button type="submit" disabled={pending} className="min-h-12 rounded-md bg-coral px-space-6 text-body font-semibold text-ink disabled:opacity-60">
+        <button type="submit" disabled={pending || paused} className="min-h-12 rounded-md bg-coral px-space-6 text-body font-semibold text-ink disabled:opacity-60">
           {pending ? "Working…" : "Submit for review"}
         </button>
       </div>

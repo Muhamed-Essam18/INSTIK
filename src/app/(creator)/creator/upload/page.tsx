@@ -28,6 +28,7 @@ async function UploadScreen() {
         languageLabel={language ? languageName(language) : "Not set yet"}
         hostComplete={profile?.complete ?? false}
         uploadsEnabled={uploadsEnabled()}
+        paused={actor.paused === true}
       />
     </div>
   );

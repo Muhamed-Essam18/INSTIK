@@ -32,7 +32,10 @@ See `specs/002-content-and-library/contracts/content-files.md` for the file form
 
 - **Owners**: set `OWNER_EMAILS` (comma-separated emails of the Instik team; see `.env.example`). Owners are never stored,
   so removing an email withdraws the role at the next check. An owner invites creators at `/owner/creators`; the link
-  works once, lasts 7 days and must be opened signed in with the invited address.
+  works once, lasts 7 days and must be opened signed in with the invited address. The rest of the owner area is the
+  review queue at `/owner` (open a video to write its transcript and approve, request changes or reject it; each
+  decision emails the creator) and the creators table at `/owner/creators` (resend an invite, pause or resume a creator).
+  A paused creator cannot upload, save, submit or edit their host page; their live videos stay up.
 - **Import the sample content** into the database: `npm run import:content` (add `-- --dry-run` to see what would
   happen, `-- --json` for a machine-readable report). It is safe to run again: rows that already exist are never
   changed. A video whose transcript file is present but invalid is saved as a hidden Draft and reported; fix the file

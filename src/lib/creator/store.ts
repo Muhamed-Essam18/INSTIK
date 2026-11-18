@@ -151,7 +151,7 @@ export const prismaUploadStore: UploadStore = {
   },
 
   async markSubmitted(videoId, at) {
-    await db().video.update({ where: { id: videoId }, data: { submittedAt: at, checklistAcceptedAt: at } });
+    await db().video.update({ where: { id: videoId }, data: { submittedAt: at, checklistAcceptedAt: at, reviewChecks: {} } });
   },
 
   async clearSubmitted(videoId) {

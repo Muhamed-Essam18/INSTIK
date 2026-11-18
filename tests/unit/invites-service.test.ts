@@ -120,6 +120,10 @@ function memoryStore(options: { serial?: boolean; failCreateHost?: boolean } = {
     async roleOfEmail(email) {
       return state.users.find((u) => u.email === email)?.role ?? null;
     },
+    async latestForEmail(email) {
+      const found = state.invites.filter((i) => i.email === email).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id, "en", { numeric: true }))[0];
+      return found ? { ...found } : null;
+    },
   };
   return { store, get state() { return state; } };
 }
@@ -234,6 +238,80 @@ describe("createInvite", () => {
     expect(await service.createInvite({ actor: owner, name: "N", email: "p20@example.com" })).toEqual({ ok: false, reason: "too-many" });
     clock = new Date(clock.getTime() + 61 * 60 * 1000);
     expect(await service.createInvite({ actor: owner, name: "N", email: "p20@example.com" })).toEqual({ ok: true });
+  });
+});
+
+describe("resendInvite", () => {
+  const invite = (service: ReturnType<typeof setup>["service"]) => service.createInvite({ actor: owner, name: "Mona Ali", email: "mona@example.com" });
+
+  it("resends a pending invitation: the earlier link stops working and the 7 days start again", async () => {
+    const { service } = setup();
+    await invite(service);
+    clock = new Date(clock.getTime() + 3 * day);
+    expect(await service.resendInvite({ actor: owner, email: "Mona@Example.com" })).toEqual({ ok: true });
+    expect(sent).toHaveLength(2);
+    expect(sent[1]).toMatchObject({ to: "mona@example.com", name: "Mona Ali" });
+    expect(sent[1].expiresAt.toISOString()).toBe("2026-11-21T10:00:00.000Z");
+    expect(await service.acceptInvite({ account: mona, token: tokenOf(sent[0]) })).toEqual({ ok: false, reason: "invalid" });
+    expect(await service.acceptInvite({ account: mona, token: tokenOf(sent[1]) })).toEqual({ ok: true });
+  });
+
+  it("resends an expired invitation", async () => {
+    const { service } = setup();
+    await invite(service);
+    clock = new Date(clock.getTime() + 8 * day);
+    expect((await service.listInvites({ actor: owner }))[0].state).toBe("expired");
+    expect(await service.resendInvite({ actor: owner, email: "mona@example.com" })).toEqual({ ok: true });
+    expect((await service.listInvites({ actor: owner })).map((i) => i.state).sort()).toEqual(["expired", "pending"]);
+    expect(await service.acceptInvite({ account: mona, token: tokenOf(sent[1]) })).toEqual({ ok: true });
+  });
+
+  it("refuses a used invitation, a revoked one, one never sent, an owner and a creator, and sends nothing", async () => {
+    const { mem, service } = setup();
+    await invite(service);
+    await service.acceptInvite({ account: mona, token: tokenOf(sent[0]) });
+    const before = mem.state.invites.length;
+    expect(await service.resendInvite({ actor: owner, email: "mona@example.com" })).toEqual({ ok: false, reason: "not-resendable" });
+
+    const second = setup();
+    await second.service.createInvite({ actor: owner, name: "Omar", email: "omar@example.com" });
+    const [pending] = await second.service.listInvites({ actor: owner });
+    await second.service.revokeInvite({ actor: owner, inviteId: pending.id });
+    const sentBefore = sent.length;
+    expect(await second.service.resendInvite({ actor: owner, email: "omar@example.com" })).toEqual({ ok: false, reason: "not-resendable" });
+    expect(await second.service.resendInvite({ actor: owner, email: "nobody@example.com" })).toEqual({ ok: false, reason: "not-resendable" });
+    expect(await second.service.resendInvite({ actor: owner, email: "boss@instik.test" })).toEqual({ ok: false, reason: "not-resendable" });
+    expect(await second.service.resendInvite({ actor: owner, email: "creator@x.com" })).toEqual({ ok: false, reason: "not-resendable" });
+    expect(sent).toHaveLength(sentBefore);
+    expect(mem.state.invites).toHaveLength(before);
+  });
+
+  it("applies the hourly limit", async () => {
+    const { service } = setup();
+    await invite(service);
+    for (let n = 0; n < 19; n += 1) expect(await service.createInvite({ actor: owner, name: "N", email: `p${n}@example.com` })).toEqual({ ok: true });
+    expect(await service.resendInvite({ actor: owner, email: "mona@example.com" })).toEqual({ ok: false, reason: "too-many" });
+    clock = new Date(clock.getTime() + 61 * 60 * 1000);
+    expect(await service.resendInvite({ actor: owner, email: "mona@example.com" })).toEqual({ ok: true });
+  });
+
+  it("leaves no pending invitation when the email cannot be sent", async () => {
+    const { mem, service } = setup();
+    await invite(service);
+    mailFails = true;
+    expect(await service.resendInvite({ actor: owner, email: "mona@example.com" })).toEqual({ ok: false, reason: "send-failed" });
+    expect(mem.state.invites.filter((i) => !i.revokedAt && !i.usedAt)).toEqual([]);
+  });
+
+  it.each([
+    ["a learner", learnerActor],
+    ["a creator", creatorActor],
+  ])("is refused for %s", async (_label, actor) => {
+    const { mem, service } = setup();
+    await invite(service);
+    expect(await service.resendInvite({ actor, email: "mona@example.com" })).toEqual({ ok: false, reason: "forbidden" });
+    expect(mem.state.invites).toHaveLength(1);
+    expect(sent).toHaveLength(1);
   });
 });
 

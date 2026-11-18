@@ -15,7 +15,7 @@ All specs in build order, each with the two messages you paste into Claude Code.
 | 7 | Payments and access | In progress | Prices, free vs full split |
 | 8 | Roles, invites and content in the database | | Your owner email |
 | 9 | Creator upload (Mux direct upload) | Built, needs the migration applied and a manual check with real Mux and Blob | Mux access token and webhook secret, Vercel Blob token, webhook tunnel for local testing |
-| 10 | Owner review, transcripts and creators | | Verified Resend domain for emails to creators |
+| 10 | Owner review, transcripts and creators | Built, needs the migrations applied and a manual check with a real browser and a verified Resend domain | Verified Resend domain for emails to creators |
 | 11 | Creator dashboard and earnings | | Stripe Tax set up (for net revenue) |
 | 12 | Automatic payouts (later) | Later | Stripe Connect, legal and tax advice |
 

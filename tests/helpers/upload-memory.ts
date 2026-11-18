@@ -16,6 +16,7 @@ export type Rec = VideoRecord & {
   durationSeconds: number | null;
   pendingPlaybackId: string | null;
   pendingDurationSeconds: number | null;
+  reviewChecks: Record<string, boolean>;
 };
 
 export const blank = (extra: Partial<Rec> & Pick<Rec, "id">): Rec => ({
@@ -44,6 +45,7 @@ export const blank = (extra: Partial<Rec> & Pick<Rec, "id">): Rec => ({
   durationSeconds: null,
   pendingPlaybackId: null,
   pendingDurationSeconds: null,
+  reviewChecks: {},
   ...extra,
 });
 
@@ -173,7 +175,7 @@ export function setupUpload(
       videos.get(id)!.slug = slug;
     },
     markSubmitted: async (id, at) => {
-      Object.assign(videos.get(id)!, { submittedAt: at, checklistAcceptedAt: at });
+      Object.assign(videos.get(id)!, { submittedAt: at, checklistAcceptedAt: at, reviewChecks: {} });
     },
     clearSubmitted: async (id) => {
       videos.get(id)!.submittedAt = null;

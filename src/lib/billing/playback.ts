@@ -53,3 +53,15 @@ export function signPlaybackTokens(
   if (!keyId || !key) return null;
   return signTokens(source.playbackId, video.durationSeconds, keyId, key, now);
 }
+
+/**
+ * Tokens for an owner reviewing a video or a creator watching their own. Creator uploads are always signed on Mux, so these need a token
+ * whatever access the video is set to and whatever any subscription says. Callers must already have checked who is asking: only the
+ * owner review screen and the creator's own video page may call this. Learners use `signPlaybackTokens` (the subscription rule, spec 7).
+ */
+export function signPreviewTokens(
+  video: { playbackId?: string | null; durationSeconds?: number | null },
+  now: Date = new Date(),
+): PlaybackTokens | null {
+  return signPlaybackTokens({ playbackId: video.playbackId ?? undefined, access: "full", durationSeconds: video.durationSeconds ?? 0 }, now);
+}

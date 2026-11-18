@@ -54,10 +54,10 @@ export async function requireProfile(
 export const getActor = cache(async (): Promise<Actor | null> => {
   const learner = await getLearner();
   if (!learner) return null;
-  const row = await db().user.findUnique({ where: { id: learner.id }, select: { role: true } });
+  const row = await db().user.findUnique({ where: { id: learner.id }, select: { role: true, pausedAt: true } });
   if (!row) return null;
   const role = resolveRole({ email: learner.email, role: row.role }, parseOwnerEmails(env().OWNER_EMAILS));
-  return { id: learner.id, email: learner.email, name: learner.name, role, isCreator: row.role === "CREATOR" };
+  return { id: learner.id, email: learner.email, name: learner.name, role, isCreator: row.role === "CREATOR", paused: row.pausedAt !== null };
 });
 
 /**

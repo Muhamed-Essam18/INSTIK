@@ -52,6 +52,8 @@ export interface InviteStore {
   countCreatedSince(invitedById: string, since: Date): Promise<number>;
   /** The role of the account with this email, or null when there is none. */
   roleOfEmail(email: string): Promise<"LEARNER" | "CREATOR" | null>;
+  /** The newest invitation sent to this address, whatever its state, or null. */
+  latestForEmail(email: string): Promise<InviteRecord | null>;
 }
 
 export type InviteMessage = { to: string; name: string; link: string; expiresAt: Date };
@@ -79,6 +81,10 @@ export type CreateResult =
   | { ok: false; reason: "already-on-team" | "already-creator"; field: "email" }
   | { ok: false; reason: "too-many" }
   | { ok: false; reason: "send-failed" };
+
+export type ResendResult =
+  | { ok: true }
+  | { ok: false; reason: "forbidden" | "not-resendable" | "too-many" | "send-failed" };
 
 export type RevokeResult = { ok: true } | { ok: false; reason: "forbidden" | "not-pending" | "not-found" };
 
@@ -115,8 +121,13 @@ export function createInviteService(deps: InviteDeps) {
     if (isOwnerEmail(email)) return { ok: false, reason: "already-on-team", field: "email" };
     if ((await deps.store.roleOfEmail(email)) === "CREATOR") return { ok: false, reason: "already-creator", field: "email" };
 
+    return issue(input.actor, name, email);
+  }
+
+  /** Makes a new invitation for `email` (the earlier pending ones stop working) and emails it. Checks the hourly limit first. */
+  async function issue(actor: Actor, name: string, email: string): Promise<Extract<CreateResult, { ok: true } | { reason: "too-many" } | { reason: "send-failed" }>> {
     const createdAt = now();
-    if ((await deps.store.countCreatedSince(input.actor.id, new Date(createdAt.getTime() - HOUR_MS))) >= INVITES_PER_HOUR) {
+    if ((await deps.store.countCreatedSince(actor.id, new Date(createdAt.getTime() - HOUR_MS))) >= INVITES_PER_HOUR) {
       return { ok: false, reason: "too-many" };
     }
 
@@ -125,7 +136,7 @@ export function createInviteService(deps: InviteDeps) {
     // One transaction: the earlier pending invitations for this address stop working as the new one starts.
     const invite = await deps.store.transaction(async (tx) => {
       await tx.revokePendingForEmail(email, createdAt);
-      return tx.createInvite({ name, email, tokenHash: hashToken(token), invitedById: input.actor.id, createdAt, expiresAt });
+      return tx.createInvite({ name, email, tokenHash: hashToken(token), invitedById: actor.id, createdAt, expiresAt });
     });
 
     try {
@@ -136,6 +147,20 @@ export function createInviteService(deps: InviteDeps) {
       return { ok: false, reason: "send-failed" };
     }
     return { ok: true };
+  }
+
+  /**
+   * Sends a fresh link to someone whose newest invitation is still pending or has expired. The earlier link stops working and the
+   * seven days start again. Owners and creators, and anyone who accepted or was revoked, are not resendable.
+   */
+  async function resendInvite(input: { actor: Actor; email: string }): Promise<ResendResult> {
+    if (input.actor.role !== "owner") return { ok: false, reason: "forbidden" };
+    const email = input.email.trim().toLowerCase();
+    if (isOwnerEmail(email) || (await deps.store.roleOfEmail(email)) === "CREATOR") return { ok: false, reason: "not-resendable" };
+    const latest = await deps.store.latestForEmail(email);
+    const state = latest ? inviteState(latest, now()) : null;
+    if (!latest || (state !== "pending" && state !== "expired")) return { ok: false, reason: "not-resendable" };
+    return issue(input.actor, latest.name, email);
   }
 
   async function revokeInvite(input: { actor: Actor; inviteId: string }): Promise<RevokeResult> {
@@ -192,7 +217,7 @@ export function createInviteService(deps: InviteDeps) {
     }
   }
 
-  return { createInvite, revokeInvite, listInvites, previewInvite, acceptInvite };
+  return { createInvite, resendInvite, revokeInvite, listInvites, previewInvite, acceptInvite };
 }
 
 export type InviteService = ReturnType<typeof createInviteService>;

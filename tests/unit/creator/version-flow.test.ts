@@ -98,6 +98,21 @@ describe("resubmitting after changes were requested", () => {
     expect(t.deleted).toEqual(["as-1"]);
   });
 
+  it("clears the owner's review checklist when the video returns to review, and keeps what else it had", async () => {
+    const t = setupUpload([
+      changes({
+        reviewChecks: { stageFits: true, audio: true, realPeople: true, safe: true, transcript: true },
+        pendingUploadId: "up-2",
+        pendingAssetId: "as-2",
+        pendingReadyAt: earlier,
+        pendingPlaybackId: "new-playback",
+        pendingDurationSeconds: 500,
+      }),
+    ]);
+    await submit(t);
+    expect(t.videos.get("v1")).toMatchObject({ status: "IN_REVIEW", reviewChecks: {}, title: "Taking the metro to work" });
+  });
+
   it("needs the checklist ticked again and the details complete, and then changes nothing", async () => {
     const t = setupUpload([changes({ pendingUploadId: "up-2", pendingAssetId: "as-2", pendingReadyAt: earlier })]);
     const result = await t.service.submitVideo(creator("ann"), { videoId: "v1", details, checklist: [true, true, false, true, true] });

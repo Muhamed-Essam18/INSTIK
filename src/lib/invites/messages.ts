@@ -34,3 +34,16 @@ export const createMessage = (
       return { message: "You can't do that." };
   }
 };
+
+export const resendMessage = (reason: "forbidden" | "not-resendable" | "too-many" | "send-failed"): string => {
+  switch (reason) {
+    case "not-resendable":
+      return "That invitation can't be sent again.";
+    case "too-many":
+      return "That's a lot of invitations for one hour. Try again a little later.";
+    case "send-failed":
+      return "Couldn't send the email. Try again.";
+    case "forbidden":
+      return "You can't do that.";
+  }
+};

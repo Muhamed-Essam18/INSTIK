@@ -45,3 +45,6 @@ export function hostFailureMessage(failure: HostFailure): { ok: false; message: 
       return { ok: false, message: "A few things to finish first.", fields: failure.fields };
   }
 }
+
+/** Said calmly to a creator an owner has paused, wherever they could otherwise upload or submit. */
+export const PAUSED_MESSAGE = "Uploads are paused for now. Your videos are safe.";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { OwnerScreen } from "@/components/screens/OwnerScreen";
+import { OwnerQueueScreen } from "@/components/screens/OwnerQueueScreen";
 import { PageFallback } from "@/components/screens/PageFallback";
 
 export const metadata: Metadata = { title: "Owner · Instik", robots: { index: false } };
@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Owner · Instik", robots: { index: f
 export default function OwnerPage() {
   return (
     <Suspense fallback={<PageFallback />}>
-      <OwnerScreen />
+      <OwnerQueueScreen />
     </Suspense>
   );
 }

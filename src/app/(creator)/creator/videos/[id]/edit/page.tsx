@@ -42,6 +42,7 @@ async function EditScreen({ params }: { params: Promise<{ id: string }> }) {
         languageLabel={language ? languageName(language) : video.languageCode}
         hostComplete={profile?.complete ?? false}
         uploadsEnabled={uploadsEnabled()}
+        paused={actor.paused === true}
       />
     </div>
   );

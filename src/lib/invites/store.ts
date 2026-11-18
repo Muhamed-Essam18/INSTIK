@@ -87,6 +87,11 @@ export const inviteStore: InviteStore = {
   countCreatedSince: (invitedById, since) =>
     db().creatorInvite.count({ where: { invitedById, createdAt: { gte: since } } }),
 
+  async latestForEmail(email) {
+    const row = await db().creatorInvite.findFirst({ where: { email }, orderBy: { createdAt: "desc" } });
+    return row ? asRecord(row) : null;
+  },
+
   async roleOfEmail(email) {
     const user = await db().user.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: { role: true } });
     return user?.role ?? null;

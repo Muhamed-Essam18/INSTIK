@@ -1,5 +1,5 @@
 import type { Actor } from "@/lib/roles/actor";
-import { hasRole } from "@/lib/roles/actor";
+import { canUpload } from "./can-upload";
 import { checkHost, checkPhoto, type HostField, type HostInput, type HostValue } from "./host-rules";
 
 // The creator's host page edits (spec FR-050 to FR-053). The database (`HostStore`) and the photo storage (`PhotoStore`) are passed in,
@@ -26,12 +26,12 @@ export type Deps = { store: HostStore; photos: PhotoStore | null };
 
 export function createHostService(deps: Deps) {
   const own = async (actor: Actor | null) => {
-    if (!actor || !hasRole(actor, "creator")) return null;
+    if (!actor || !canUpload(actor)) return null;
     return deps.store.getOwnHost(actor.id);
   };
 
   async function saveHost(actor: Actor | null, input: HostInput): Promise<{ ok: true } | HostFailure> {
-    if (!actor || !hasRole(actor, "creator")) return { ok: false, reason: "not-allowed" };
+    if (!actor || !canUpload(actor)) return { ok: false, reason: "not-allowed" };
     const host = await own(actor);
     if (!host) return { ok: false, reason: "not-found" };
     const checked = checkHost(input);
@@ -42,7 +42,7 @@ export function createHostService(deps: Deps) {
 
   /** Stores a new photo and only then forgets the old one, so a failure at any step leaves the old photo in place. */
   async function uploadPhoto(actor: Actor | null, bytes: Uint8Array): Promise<{ ok: true; photo: string } | HostFailure> {
-    if (!actor || !hasRole(actor, "creator")) return { ok: false, reason: "not-allowed" };
+    if (!actor || !canUpload(actor)) return { ok: false, reason: "not-allowed" };
     const host = await own(actor);
     if (!host) return { ok: false, reason: "not-found" };
     if (!deps.photos) return { ok: false, reason: "not-set-up" };

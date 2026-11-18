@@ -37,6 +37,9 @@ export const creatorVideoEditPath = (id: string) => `/creator/videos/${id}/edit`
 export const creatorHostPath = () => "/creator/host";
 export const muxWebhookPath = () => "/api/mux/webhook";
 export const ownerCreatorsPath = () => "/owner/creators";
+export const ownerReviewVideoPath = (id: string) => `/owner/review/${id}`;
+export const ownerWaitingPath = () => "/owner/waiting";
+export const ownerCreatorPath = (id: string) => `/owner/creators/${id}`;
 export const aboutPath = () => "/about";
 export const privacyPath = () => "/privacy";
 export const howItWorksPath = () => "/#how-it-works";

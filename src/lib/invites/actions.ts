@@ -3,7 +3,7 @@
 import { ownerCreatorsPath } from "@/lib/routes";
 import { getLearner, requireOwner } from "@/lib/session";
 import { inviteService } from "./instance";
-import { acceptMessage, createMessage, type InviteFormResult } from "./messages";
+import { acceptMessage, createMessage, resendMessage, type InviteFormResult } from "./messages";
 
 // Server actions for the owner's invite form and the invitation page. Every one checks the role again on the server
 // (the DAL) and none of them ever returns the token.
@@ -35,4 +35,12 @@ export async function acceptInvite(token: unknown): Promise<{ ok: true } | { ok:
   if (typeof token !== "string" || token.length < 20 || token.length > 64) return { ok: false, message: acceptMessage("invalid") };
   const result = await inviteService().acceptInvite({ account: { id: learner.id, email: learner.email }, token });
   return result.ok ? { ok: true } : { ok: false, message: acceptMessage(result.reason) };
+}
+
+/** Sends a fresh link to someone whose invitation is still pending or has expired. Owners only. */
+export async function resendInvite(email: unknown): Promise<{ ok: true } | { ok: false; message: string }> {
+  const actor = await requireOwner(ownerCreatorsPath());
+  if (typeof email !== "string" || email.length === 0 || email.length > 320) return { ok: false, message: "Couldn't find that invitation." };
+  const result = await inviteService().resendInvite({ actor, email });
+  return result.ok ? { ok: true } : { ok: false, message: resendMessage(result.reason) };
 }

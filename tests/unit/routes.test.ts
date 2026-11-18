@@ -10,6 +10,9 @@ import {
   invitePath,
   muxWebhookPath,
   ownerCreatorsPath,
+  ownerCreatorPath,
+  ownerReviewVideoPath,
+  ownerWaitingPath,
   ownerPath,
   billingPortalPath,
   billingReturnPath,
@@ -91,6 +94,9 @@ describe("creator programme paths", () => {
     expect(creatorPath()).toBe("/creator");
     expect(ownerPath()).toBe("/owner");
     expect(ownerCreatorsPath()).toBe("/owner/creators");
+    expect(ownerReviewVideoPath("v1")).toBe("/owner/review/v1");
+    expect(ownerWaitingPath()).toBe("/owner/waiting");
+    expect(ownerCreatorPath("u1")).toBe("/owner/creators/u1");
     expect(INVITE_LIFETIME_DAYS).toBe(7);
   });
 });

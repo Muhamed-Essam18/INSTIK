@@ -5,6 +5,7 @@ import { useState } from "react";
 import { createUpload, submitVideo } from "@/lib/creator/actions";
 import type { ProblemField } from "@/lib/creator/rules";
 import { Checklist } from "./Checklist";
+import { PAUSED_MESSAGE } from "@/lib/creator/messages";
 import { UploadProgress, type StartResult } from "./UploadProgress";
 
 // On the status page of a video in Changes requested: upload a new version (held apart from the current file), then confirm the
@@ -19,9 +20,11 @@ type Props = {
   /** The plain reason the last new version failed, if it did. */
   failure: string | null;
   uploadsEnabled: boolean;
+  /** An owner has paused this creator: no new version can be added or submitted. */
+  paused?: boolean;
 };
 
-export function VersionUpload({ videoId, details, pendingLabel, failure, uploadsEnabled }: Props) {
+export function VersionUpload({ videoId, details, pendingLabel, failure, uploadsEnabled, paused = false }: Props) {
   const router = useRouter();
   const [checked, setChecked] = useState<boolean[]>([false, false, false, false, false]);
   const [errors, setErrors] = useState<Partial<Record<ProblemField, string>>>({});
@@ -66,7 +69,11 @@ export function VersionUpload({ videoId, details, pendingLabel, failure, uploads
           {failure}
         </p>
       )}
-      {uploadsEnabled ? (
+      {paused ? (
+        <p role="status" className="m-0 text-body text-ink">
+          {PAUSED_MESSAGE}
+        </p>
+      ) : uploadsEnabled ? (
         <UploadProgress start={start} onPhase={(p) => setUploading(p === "starting" || p === "uploading")} onUploaded={() => router.refresh()} heading="Drop your new version here" />
       ) : (
         <p className="m-0 text-body text-ink">Uploads aren&apos;t set up yet, so a new file can&apos;t be added today.</p>
@@ -87,7 +94,7 @@ export function VersionUpload({ videoId, details, pendingLabel, failure, uploads
           {message}
         </p>
       )}
-      <button type="submit" disabled={pending} className="min-h-12 self-start rounded-md bg-coral px-space-6 text-body font-semibold text-ink disabled:opacity-60">
+      <button type="submit" disabled={pending || paused} className="min-h-12 self-start rounded-md bg-coral px-space-6 text-body font-semibold text-ink disabled:opacity-60">
         {pending ? "Working…" : "Submit for review"}
       </button>
     </form>

@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   auth: vi.fn(),
   findUnique: vi.fn(),
   listInvites: vi.fn(),
+  getQueue: vi.fn(),
+  listCreators: vi.fn(),
   ownerEmails: "boss@instik.test",
 }));
 
@@ -15,7 +17,10 @@ vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/db", () => ({ db: () => ({ user: { findUnique: mocks.findUnique } }) }));
 vi.mock("@/lib/env", () => ({ env: () => ({ OWNER_EMAILS: mocks.ownerEmails }) }));
 vi.mock("@/lib/invites/instance", () => ({ inviteService: () => ({ listInvites: mocks.listInvites }) }));
-vi.mock("@/lib/invites/actions", () => ({ createInvite: vi.fn(), revokeInvite: vi.fn(), acceptInvite: vi.fn() }));
+vi.mock("@/lib/review/instance", () => ({ reviewService: () => ({ getQueue: mocks.getQueue }) }));
+vi.mock("@/lib/creators/instance", () => ({ creatorsService: () => ({ listCreators: mocks.listCreators }) }));
+vi.mock("@/lib/creators/actions", () => ({ pauseCreator: vi.fn(), resumeCreator: vi.fn() }));
+vi.mock("@/lib/invites/actions", () => ({ createInvite: vi.fn(), revokeInvite: vi.fn(), resendInvite: vi.fn(), acceptInvite: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => {
     throw new Error(`REDIRECT:${url}`);
@@ -29,7 +34,8 @@ vi.mock("react", async (importOriginal) => ({ ...(await importOriginal<typeof im
 
 import { CreatorScreen } from "@/components/screens/CreatorScreen";
 import { OwnerCreatorsScreen } from "@/components/screens/OwnerCreatorsScreen";
-import { OwnerScreen } from "@/components/screens/OwnerScreen";
+import { OwnerQueueScreen } from "@/components/screens/OwnerQueueScreen";
+import { OwnerWaitingScreen } from "@/components/screens/OwnerWaitingScreen";
 
 type Who = "signed-out" | "learner" | "creator" | "owner";
 function as(who: Who) {
@@ -42,18 +48,21 @@ function as(who: Who) {
 beforeEach(() => {
   Object.values(mocks).forEach((m) => typeof m === "function" && m.mockReset());
   mocks.listInvites.mockResolvedValue([]);
+  mocks.listCreators.mockResolvedValue([]);
+  mocks.getQueue.mockResolvedValue({ counts: { needsReview: 0, transcriptInProgress: 0, waitingOnCreator: 0, approvedThisMonth: 0 }, rows: [] });
 });
 afterEach(cleanup);
 
 describe.each([
   ["the creator area", CreatorScreen, "creator", "/creator"],
-  ["the owner area", OwnerScreen, "owner", "/owner"],
+  ["the owner review queue", OwnerQueueScreen, "owner", "/owner"],
+  ["the owner waiting list", OwnerWaitingScreen, "owner", "/owner/waiting"],
   ["the invite page for owners", OwnerCreatorsScreen, "owner", "/owner/creators"],
 ] as const)("%s", (_name, Screen, allowed, path) => {
   it("is empty and addressed to the right role", async () => {
     as(allowed);
     render(await Screen());
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Hello, Sam|Creators/);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Hello, Sam|Creators|Review queue|Waiting on creators/);
   });
 
   it("sends a signed-out visitor to sign in and back", async () => {
@@ -68,18 +77,14 @@ describe.each([
 });
 
 describe("what the pages show", () => {
-  it("shows nothing but an empty note on the creator and owner homes, and never reads videos or invitations", async () => {
+  it("shows nothing but an empty note on the creator home, and never reads videos or invitations", async () => {
     as("creator");
     render(await CreatorScreen());
     expect(screen.getByText(/statistics will appear here once your videos are live/i)).toBeTruthy();
     expect(screen.getByRole("link", { name: "Upload a video" }).getAttribute("href")).toBe("/creator/upload");
     expect(screen.getByRole("link", { name: "My videos" }).getAttribute("href")).toBe("/creator/videos");
-    cleanup();
-    as("owner");
-    render(await OwnerScreen());
-    expect(screen.getByText(/Nothing here yet/)).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Creators and invitations" }).getAttribute("href")).toBe("/owner/creators");
     expect(mocks.listInvites).not.toHaveBeenCalled();
+    expect(mocks.getQueue).not.toHaveBeenCalled();
   });
 
   it("shows the invite form and the invitations to an owner", async () => {

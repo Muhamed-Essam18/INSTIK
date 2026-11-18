@@ -54,8 +54,10 @@ model User {
   hourSound     Boolean   @default(false)
   // Creator programme: learner (default) or creator. Owner is never stored; it comes from OWNER_EMAILS.
   role          Role      @default(LEARNER)
+  // Creator programme: set by an owner to pause a creator (no uploads or submissions); null means active.
+  pausedAt      DateTime?
 
-  accounts         Account[]
+  accounts        Account[]
   sessions         Session[]
   languages        LearnerLanguage[]
   answers          ComprehensionAnswer[]
@@ -69,6 +71,8 @@ model User {
   statusEvents     VideoStatusEvent[]
   invitesSent      CreatorInvite[]       @relation("InviteSender")
   invitesUsed      CreatorInvite[]       @relation("InviteUser")
+  pauseEvents      CreatorPauseEvent[]   @relation("PausedCreator")
+  pausesMade       CreatorPauseEvent[]   @relation("PauseActor")
 }
 
 model Account {
@@ -336,6 +340,8 @@ model Video {
   // Set when the creator submits; completes once the asset is ready. Cleared when the submission completes or fails.
   submittedAt     DateTime?
   checklistAcceptedAt DateTime?
+  // The owner's review checklist: keys stageFits, audio, realPeople, safe, transcript, each boolean (zod on read and write). Cleared on resubmission.
+  reviewChecks    Json        @default("{}")
   // When the current first upload link was created ("Upload didn't finish" after 75 minutes with no asset).
   uploadStartedAt DateTime?
   // A new version while in CHANGES_REQUESTED: held apart from the current file until the creator resubmits.
@@ -372,6 +378,8 @@ model TranscriptSegment {
   script          String
   transliteration String?
   english         String?
+  // Incremented on every write; the editor sends the revision it started from so edits never silently overwrite.
+  revision        Int     @default(0)
 
   video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
@@ -430,4 +438,41 @@ model CreatorInvite {
   usedBy    User? @relation("InviteUser", fields: [usedById], references: [id], onDelete: SetNull)
 
   @@index([email])
+}
+
+enum PauseKind {
+  PAUSED
+  RESUMED
+}
+
+// Every pause and resume of a creator. Append-only: a database trigger refuses UPDATE and DELETE.
+model CreatorPauseEvent {
+  id         String    @id @default(cuid())
+  userId     String
+  kind       PauseKind
+  actorId    String?
+  // The owner's name or email at that moment. Never empty.
+  actorLabel String
+  createdAt  DateTime  @default(now())
+
+  user  User  @relation("PausedCreator", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("PauseActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+enum EmailOutcome {
+  SENT
+  FAILED
+}
+
+// The decision email for one status event. eventId is unique, so a decision can never email twice.
+model DecisionEmail {
+  id        String       @id @default(cuid())
+  eventId   String       @unique
+  toEmail   String
+  outcome   EmailOutcome
+  // A short plain reason, at most 200 characters (checked in code); never a provider response body.
+  failure   String?
+  createdAt DateTime     @default(now())
 }

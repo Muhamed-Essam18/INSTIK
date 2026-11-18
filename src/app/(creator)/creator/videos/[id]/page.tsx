@@ -12,7 +12,7 @@ import { getOwnPlayback, getOwnVideo, listStatusHistory } from "@/lib/content/cr
 import { stageLabel, stages, topicLabel, topics, type StageSlug, type TopicSlug } from "@/lib/content/taxonomy";
 import { historyItems } from "@/lib/creator/list";
 import { canDelete, canEditDetails, canUploadNewVersion, displayStatus } from "@/lib/creator/rules";
-import { signPlaybackTokens } from "@/lib/billing/playback";
+import { signPreviewTokens } from "@/lib/billing/playback";
 import { uploadsEnabled } from "@/lib/mux/client";
 import { creatorVideoEditPath, creatorVideoPath, creatorVideosPath } from "@/lib/routes";
 import { requireCreator } from "@/lib/session";
@@ -34,7 +34,7 @@ async function VideoScreen({ params }: Params) {
   const now = new Date();
   const display = displayStatus(video, now);
   const items = historyItems(history ?? []);
-  const tokens = playback ? signPlaybackTokens({ playbackId: playback.playbackId, access: playback.access.toLowerCase(), durationSeconds: playback.durationSeconds ?? 0 }) : null;
+  const tokens = playback ? signPreviewTokens(playback) : null;
   const meta = [stageText(video.proposedStage ?? video.stage), topicText(video.topic), minutes(video.durationSeconds)].filter(Boolean).join(" · ");
   // The note shown is the latest history entry's note, and none when that entry has none.
   const note = video.latestNote;
@@ -78,6 +78,7 @@ async function VideoScreen({ params }: Params) {
             pendingLabel={display.pending?.label ?? null}
             failure={video.pendingFailure}
             uploadsEnabled={uploadsEnabled()}
+            paused={actor.paused === true}
           />
         </section>
       )}

@@ -159,3 +159,20 @@ describe("the upload form", () => {
     expect(document.querySelector('input[type="file"]')).toBeNull();
   });
 });
+
+describe("a paused creator", () => {
+  it("is told calmly, cannot save or submit, and has no uploader", () => {
+    renderIt({ paused: true });
+    expect(screen.getByText("Uploads are paused for now. Your videos are safe.")).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Save draft" }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: "Submit for review" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(document.querySelector('input[type="file"]')).toBeNull();
+    expect(actions.saveDraft).not.toHaveBeenCalled();
+  });
+
+  it("an active creator sees none of that", () => {
+    renderIt();
+    expect(screen.queryByText(/Uploads are paused/)).toBeNull();
+    expect((screen.getByRole("button", { name: "Save draft" }) as HTMLButtonElement).disabled).toBe(false);
+  });
+});

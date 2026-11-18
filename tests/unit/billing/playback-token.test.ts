@@ -1,10 +1,11 @@
 import { generateKeyPairSync, createVerify } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ env: vi.fn() }));
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
 
-import { signPlaybackTokens, signTokens, tokenLifetimeSeconds } from "@/lib/billing/playback";
+import { signPlaybackTokens, signPreviewTokens, signTokens, tokenLifetimeSeconds } from "@/lib/billing/playback";
 
 const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const pem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
@@ -46,6 +47,47 @@ describe("signTokens", () => {
     expect(tokenLifetimeSeconds(500)).toBe(3600);
     expect(tokenLifetimeSeconds(3000)).toBe(6000);
     expect(decode(signTokens("pb", 3000, "k", privateB64, now).playback).payload.exp).toBe(nowSeconds + 6000);
+  });
+});
+
+describe("signPreviewTokens (owner review and a creator's own video)", () => {
+  it("signs all three tokens for the video's own playback id, whatever the access", () => {
+    const tokens = signPreviewTokens({ playbackId: "pb123", durationSeconds: 500 }, now)!;
+    expect(decode(tokens.playback).payload).toMatchObject({ sub: "pb123", aud: "v" });
+    expect(decode(tokens.thumbnail).payload).toMatchObject({ sub: "pb123", aud: "t" });
+    expect(decode(tokens.storyboard).payload).toMatchObject({ sub: "pb123", aud: "s" });
+    for (const token of Object.values(tokens)) expect(verifies(token)).toBe(true);
+  });
+
+  it("gives a token where the learner rule gives none (a free-access video)", () => {
+    expect(signPlaybackTokens({ playbackId: "pb123", access: "free", durationSeconds: 500 }, now)).toBeNull();
+    expect(signPreviewTokens({ playbackId: "pb123", durationSeconds: 500 }, now)).not.toBeNull();
+  });
+
+  it("returns null for no playback id, the sample clip or missing signing settings", () => {
+    expect(signPreviewTokens({ playbackId: null }, now)).toBeNull();
+    expect(signPreviewTokens({ playbackId: "sample-clip" }, now)).toBeNull();
+    mocks.env.mockReturnValue({});
+    expect(signPreviewTokens({ playbackId: "pb123" }, now)).toBeNull();
+  });
+});
+
+describe("who may call which signer", () => {
+  const read = (file: string) => readFileSync(file, "utf8");
+  const users = (name: string) =>
+    ["src/components/screens/OwnerReviewScreen.tsx", "src/app/(creator)/creator/videos/[id]/page.tsx", "src/components/screens/WatchScreen.tsx"].filter((f) => read(f).includes(name));
+
+  it("only the owner review screen and a creator's own video page use the preview signer", () => {
+    expect(users("signPreviewTokens")).toEqual(["src/components/screens/OwnerReviewScreen.tsx", "src/app/(creator)/creator/videos/[id]/page.tsx"]);
+  });
+
+  it("the learner watch page keeps the subscription rule and never the preview signer", () => {
+    expect(users("signPlaybackTokens")).toEqual(["src/components/screens/WatchScreen.tsx"]);
+  });
+
+  it("the review screen requires an owner and the creator page requires the creator before signing", () => {
+    expect(read("src/components/screens/OwnerReviewScreen.tsx")).toMatch(/requireOwner[\s\S]*signPreviewTokens/);
+    expect(read("src/app/(creator)/creator/videos/[id]/page.tsx")).toMatch(/requireCreator[\s\S]*getOwnPlayback[\s\S]*signPreviewTokens/);
   });
 });
 
