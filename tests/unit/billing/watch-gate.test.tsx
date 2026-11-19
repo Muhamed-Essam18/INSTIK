@@ -13,7 +13,7 @@ vi.mock("@/lib/db", async () => {
 const mocks = vi.hoisted(() => ({
   requireVideoAccess: vi.fn(),
   getSubscription: vi.fn(),
-  signPlaybackTokens: vi.fn(),
+  issuePlaybackTokens: vi.fn(),
   getTranscriptView: vi.fn(),
   getLayers: vi.fn(),
   getAnswer: vi.fn(),
@@ -30,7 +30,7 @@ vi.mock("@/lib/billing/subscription", () => ({
   requireVideoAccess: mocks.requireVideoAccess,
   getSubscription: mocks.getSubscription,
 }));
-vi.mock("@/lib/billing/playback", () => ({ signPlaybackTokens: mocks.signPlaybackTokens }));
+vi.mock("@/lib/billing/playback", () => ({ issuePlaybackTokens: mocks.issuePlaybackTokens }));
 vi.mock("@/lib/learner/preferences", () => ({ getLayers: mocks.getLayers, getAnswer: mocks.getAnswer }));
 vi.mock("@/lib/content", async (original) => ({
   ...(await original<typeof import("@/lib/content")>()),
@@ -68,7 +68,7 @@ beforeEach(() => {
   mocks.getAnswer.mockResolvedValue(undefined);
   mocks.getSubscription.mockResolvedValue(null);
   mocks.getTranscriptView.mockResolvedValue({ cues: [] });
-  mocks.signPlaybackTokens.mockReturnValue(tokens);
+  mocks.issuePlaybackTokens.mockReturnValue({ status: "tokens", tokens });
 });
 afterEach(cleanup);
 
@@ -96,7 +96,7 @@ describe("a full-access video without access", () => {
     expect(mocks.getTranscriptView).not.toHaveBeenCalled();
     expect(mocks.getLayers).not.toHaveBeenCalled();
     expect(mocks.getAnswer).not.toHaveBeenCalled();
-    expect(mocks.signPlaybackTokens).not.toHaveBeenCalled();
+    expect(mocks.issuePlaybackTokens).not.toHaveBeenCalled();
   });
 
   it("asks the access rule with the learner and the video", async () => {
@@ -117,11 +117,35 @@ describe("a full-access video with access", () => {
 });
 
 describe("a free video", () => {
-  it("renders the player with no token for a learner with no subscription", async () => {
-    mocks.requireVideoAccess.mockResolvedValue({ ok: true });
-    mocks.signPlaybackTokens.mockReturnValue(null);
+  beforeEach(() => mocks.requireVideoAccess.mockResolvedValue({ ok: true }));
+
+  // Uploads are created with signed playback, so a free video needs tokens too: Mux checks the playback id, not our label.
+  it("gets the signed tokens as well, for a learner with no subscription", async () => {
+    const { getByTestId } = await renderWatch(free.slug);
+    expect(getByTestId("player")).toBeTruthy();
+    expect(mocks.issuePlaybackTokens).toHaveBeenCalledWith(expect.objectContaining({ slug: free.slug }), expect.any(Date), { videoSlug: free.slug });
+    expect(mocks.playerProps).toHaveBeenCalledWith(expect.objectContaining({ playbackTokens: tokens }));
+  });
+
+  it("renders the player with no token when none is needed (the sample clip)", async () => {
+    mocks.issuePlaybackTokens.mockReturnValue({ status: "not-needed" });
     const { getByTestId } = await renderWatch(free.slug);
     expect(getByTestId("player")).toBeTruthy();
     expect(mocks.playerProps).toHaveBeenCalledWith(expect.objectContaining({ playbackTokens: undefined }));
+  });
+});
+
+describe("a video whose token could not be made", () => {
+  beforeEach(() => {
+    mocks.requireVideoAccess.mockResolvedValue({ ok: true });
+    mocks.issuePlaybackTokens.mockReturnValue({ status: "unavailable", reason: "no-signing-key" });
+  });
+
+  it.each([free, full])("shows a calm notice and no broken player for $access video", async (video) => {
+    const { getByRole, queryByTestId, container } = await renderWatch(video.slug);
+    expect(queryByTestId("player")).toBeNull();
+    expect(getByRole("status").textContent).toMatch(/can.t play right now/);
+    expect(container.querySelector('a[href="/learn/arabic-egyptian"]')).toBeTruthy();
+    expect(getByRole("heading", { level: 1 }).textContent).toBe(video.title);
   });
 });

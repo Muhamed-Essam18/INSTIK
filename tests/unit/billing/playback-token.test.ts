@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ env: vi.fn() }));
 vi.mock("@/lib/env", () => ({ env: mocks.env }));
 
-import { signPlaybackTokens, signTokens, tokenLifetimeSeconds } from "@/lib/billing/playback";
+import { issuePlaybackTokens, signPlaybackTokens, signTokens, tokenLifetimeSeconds } from "@/lib/billing/playback";
 
 const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const pem = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
@@ -21,7 +21,10 @@ const verifies = (token: string) => {
   return createVerify("RSA-SHA256").update(`${h}.${p}`).verify(publicKey, Buffer.from(s, "base64url"));
 };
 
+const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+
 beforeEach(() => {
+  logged.mockClear();
   mocks.env.mockReset();
   mocks.env.mockReturnValue({ MUX_SIGNING_KEY_ID: "kid-1", MUX_SIGNING_PRIVATE_KEY: privateB64 });
 });
@@ -49,36 +52,49 @@ describe("signTokens", () => {
   });
 });
 
-describe("signPlaybackTokens", () => {
-  const full = { playbackId: "pb123", access: "full", durationSeconds: 500 };
+describe("issuePlaybackTokens", () => {
+  const video = { playbackId: "pb123", durationSeconds: 500 };
 
-  it("signs a full-access Mux video", () => {
-    const tokens = signPlaybackTokens(full, now);
-    expect(tokens && verifies(tokens.playback)).toBe(true);
+  it("signs a Mux video whatever its access label: a free upload has a signed playback id too", () => {
+    const outcome = issuePlaybackTokens(video, now);
+    expect(outcome.status).toBe("tokens");
+    if (outcome.status === "tokens") expect(verifies(outcome.tokens.playback)).toBe(true);
+    // The access label is not an input: the caller has already decided who may watch, and a locked learner never gets here.
+    expect(issuePlaybackTokens({ ...video, access: "free" } as typeof video, now).status).toBe("tokens");
+    expect(issuePlaybackTokens({ ...video, access: "full" } as typeof video, now).status).toBe("tokens");
   });
 
-  it("returns null for a free video", () => {
-    expect(signPlaybackTokens({ ...full, access: "free" }, now)).toBeNull();
+  it("needs nothing for the sample clip or a video with no playback id", () => {
+    expect(issuePlaybackTokens({ ...video, playbackId: "sample-clip" }, now)).toEqual({ status: "not-needed" });
+    expect(issuePlaybackTokens({ ...video, playbackId: undefined }, now)).toEqual({ status: "not-needed" });
+    expect(logged).not.toHaveBeenCalled();
   });
 
-  it("returns null for the sample clip and for no playback id", () => {
-    expect(signPlaybackTokens({ ...full, playbackId: "sample-clip" }, now)).toBeNull();
-    expect(signPlaybackTokens({ ...full, playbackId: undefined }, now)).toBeNull();
-  });
-
-  it("returns null when the signing settings are missing", () => {
+  it("says unavailable, and logs the reason and the video, when the signing settings are missing", () => {
     mocks.env.mockReturnValue({});
-    expect(signPlaybackTokens(full, now)).toBeNull();
+    expect(issuePlaybackTokens(video, now, { videoSlug: "video-upload-test-3" })).toEqual({ status: "unavailable", reason: "no-signing-key" });
+    expect(logged).toHaveBeenCalledWith("[playback] no token issued", { reason: "no-signing-key", video: "video-upload-test-3" });
   });
 
-  it("never puts a token or the key in an error message", () => {
-    mocks.env.mockReturnValue({ MUX_SIGNING_KEY_ID: "kid-1", MUX_SIGNING_PRIVATE_KEY: Buffer.from("not a key").toString("base64") });
-    let message = "";
-    try {
-      signPlaybackTokens(full, now);
-    } catch (error) {
-      message = (error as Error).message;
-    }
-    expect(message).not.toContain("not a key");
+  it("says unavailable instead of throwing when the key cannot sign, and logs only the error name", () => {
+    const badKey = Buffer.from("not a key").toString("base64");
+    mocks.env.mockReturnValue({ MUX_SIGNING_KEY_ID: "kid-1", MUX_SIGNING_PRIVATE_KEY: badKey });
+    expect(issuePlaybackTokens(video, now, { videoSlug: "v" })).toEqual({ status: "unavailable", reason: "signing-failed" });
+    expect(logged).toHaveBeenCalledTimes(1);
+    const text = JSON.stringify(logged.mock.calls);
+    expect(text).toContain("signing-failed");
+    for (const secret of [badKey, "not a key", "kid-1", "pb123"]) expect(text).not.toContain(secret);
+  });
+});
+
+describe("signPlaybackTokens", () => {
+  const video = { playbackId: "pb123", durationSeconds: 500 };
+
+  it("returns the tokens, or null when none are needed or none could be made", () => {
+    const tokens = signPlaybackTokens(video, now);
+    expect(tokens && verifies(tokens.playback)).toBe(true);
+    expect(signPlaybackTokens({ ...video, playbackId: "sample-clip" }, now)).toBeNull();
+    mocks.env.mockReturnValue({});
+    expect(signPlaybackTokens(video, now)).toBeNull();
   });
 });

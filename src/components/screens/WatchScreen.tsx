@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { LockedVideo } from "@/components/billing/LockedVideo";
 import { ComingSoonNotice } from "@/components/ComingSoonNotice";
 import { PlaybackProvider } from "@/components/player/PlaybackProvider";
+import { PlaybackUnavailable } from "@/components/player/PlaybackUnavailable";
 import { WatchCounter } from "@/components/player/WatchCounter";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { TranscriptPanel } from "@/components/transcript/TranscriptPanel";
@@ -9,7 +10,7 @@ import { HostCard } from "@/components/watch/HostCard";
 import { UnderstandingCheck } from "@/components/watch/UnderstandingCheck";
 import { UpNext } from "@/components/watch/UpNext";
 import { markLocked } from "@/lib/billing/access";
-import { signPlaybackTokens } from "@/lib/billing/playback";
+import { issuePlaybackTokens } from "@/lib/billing/playback";
 import { getSubscription, requireVideoAccess } from "@/lib/billing/subscription";
 import { getHost, getHosts, getTranscriptView, getVideo } from "@/lib/content";
 import { getUpNextVideos } from "@/lib/content/library";
@@ -64,7 +65,9 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   const upNext = markLocked(await getUpNextVideos(slug, video.slug), subscription, new Date());
   const transcriptView = await getTranscriptView(slug, video.slug);
   const next = upNext.find((v) => !v.locked);
-  const playbackTokens = signPlaybackTokens(video) ?? undefined;
+  // Free or full, a Mux video needs tokens when its playback id is signed (uploads are). A failure is logged on the server.
+  const playback = issuePlaybackTokens(video, new Date(), { videoSlug: video.slug });
+  const playbackTokens = playback.status === "tokens" ? playback.tokens : undefined;
 
   return (
     <PlaybackProvider
@@ -75,14 +78,18 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
       <WatchCounter languageCode={language.code} videoSlug={video.slug} />
       <div className="flex flex-wrap items-start gap-space-8">
         <section aria-label="Video" className="flex min-w-0 grow-[999] basis-[560px] flex-col gap-space-6">
-          <VideoPlayer
-            playbackId={video.playbackId}
-            videoSlug={video.slug}
-            title={video.title}
-            stageLabel={stage}
-            libraryHref={libraryPath(slug)}
-            playbackTokens={playbackTokens}
-          />
+          {playback.status === "unavailable" ? (
+            <PlaybackUnavailable libraryHref={libraryPath(slug)} />
+          ) : (
+            <VideoPlayer
+              playbackId={video.playbackId}
+              videoSlug={video.slug}
+              title={video.title}
+              stageLabel={stage}
+              libraryHref={libraryPath(slug)}
+              playbackTokens={playbackTokens}
+            />
+          )}
 
           <div className="flex flex-wrap items-start gap-space-6">
             <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-space-2">
