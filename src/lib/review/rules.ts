@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { daysBetween } from "@/lib/hours/days";
+import { APP_ZONE, startOfMonth, warsawDayOf } from "@/lib/time/warsaw";
 
 // The owner's review rules (spec 10). Pure: no database, no session, no clock except what is passed in.
 
@@ -59,42 +61,13 @@ export function approveProblems(input: {
 export type QueueBadge = "Needs review" | "Transcript in progress";
 export const queueBadge = (segmentCount: number): QueueBadge => (segmentCount > 0 ? "Transcript in progress" : "Needs review");
 
-export const REVIEW_ZONE = "Europe/Warsaw";
-
-const zoneParts = (date: Date) => {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone: REVIEW_ZONE,
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    hourCycle: "h23",
-  }).formatToParts(date);
-  const get = (type: string) => Number(parts.find((p) => p.type === type)!.value);
-  return { year: get("year"), month: get("month"), day: get("day"), hour: get("hour"), minute: get("minute") };
-};
-
-/** The first instant of the current month in the Europe/Warsaw time zone. */
-export function startOfMonth(now: Date): Date {
-  const { year, month } = zoneParts(now);
-  // Warsaw is UTC+1 in winter and UTC+2 in summer: the right guess is the one that shows 1st, 00:00 there.
-  for (const offsetHours of [1, 2]) {
-    const candidate = new Date(Date.UTC(year, month - 1, 1) - offsetHours * 3_600_000);
-    const p = zoneParts(candidate);
-    if (p.year === year && p.month === month && p.day === 1 && p.hour === 0 && p.minute === 0) return candidate;
-  }
-  return new Date(Date.UTC(year, month - 1, 1) - 3_600_000);
-}
-
-const warsawDay = (date: Date) => {
-  const p = zoneParts(date);
-  return Date.UTC(p.year, p.month - 1, p.day) / 86_400_000;
-};
+// The Warsaw zone helpers moved to `src/lib/time/warsaw.ts` (spec 11 shares them); they are re-exported here so review code is unchanged.
+export const REVIEW_ZONE = APP_ZONE;
+export { startOfMonth };
 
 /** Whole calendar days (in Warsaw) from `from` to `now`, as "Today", "1 day" or "4 days". */
 export function daysWaiting(from: Date, now: Date): string {
-  const days = Math.max(0, Math.round(warsawDay(now) - warsawDay(from)));
+  const days = Math.max(0, daysBetween(warsawDayOf(from), warsawDayOf(now)));
   if (days === 0) return "Today";
   return days === 1 ? "1 day" : `${days} days`;
 }

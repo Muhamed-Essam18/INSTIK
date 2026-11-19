@@ -1,10 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createCheckoutSession, ensureCustomer, findOpenSubscription } from "@/lib/billing/checkout";
-import { hasFullAccess } from "@/lib/billing/access";
 import { syncNow } from "@/lib/billing/deps";
 import { billingEnabled } from "@/lib/billing/enabled";
 import { periodSchema } from "@/lib/billing/schemas";
-import { getSubscription } from "@/lib/billing/subscription";
+import { getFullAccess } from "@/lib/billing/subscription";
 import { billingStartPath, onboardingPath, pricingPath, settingsPath } from "@/lib/routes";
 import { getLearner } from "@/lib/session";
 
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest) {
   const learner = await getLearner();
   if (!learner) return go(onboardingPath(billingStartPath(period.data)));
 
-  if (hasFullAccess(await getSubscription(learner.id), new Date())) return go(settingsPath());
+  if ((await getFullAccess(learner.id)).full) return go(settingsPath());
 
   try {
     const customerId = await ensureCustomer(learner);

@@ -1,6 +1,6 @@
 import { HostVideoList } from "@/components/host/HostVideoList";
 import { markLocked } from "@/lib/billing/access";
-import { getSubscription } from "@/lib/billing/subscription";
+import { getFullAccess } from "@/lib/billing/subscription";
 import type { LibraryVideo } from "@/lib/content/search";
 import { getLearner } from "@/lib/session";
 
@@ -18,6 +18,7 @@ export async function HostVideos({
   videos: LibraryVideo[];
 }) {
   const learner = await getLearner();
-  const shown = learner ? markLocked(videos, await getSubscription(learner.id), new Date()) : videos;
+  const access = learner ? await getFullAccess(learner.id) : null;
+  const shown = access ? markLocked(videos, access.subscription, new Date(), access.manual) : videos;
   return <HostVideoList languageSlug={languageSlug} hostName={hostName} videos={shown} />;
 }

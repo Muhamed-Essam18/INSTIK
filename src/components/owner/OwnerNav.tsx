@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { defaultLanguage } from "@/lib/languages";
-import { libraryPath, ownerCreatorsPath, ownerPath } from "@/lib/routes";
+import { libraryPath, ownerAccessPath, ownerCreatorsPath, ownerEarningsPath, ownerPath, ownerRequestsPath } from "@/lib/routes";
 
-// The owner panel's navigation, as in docs/design/OwnerReview.dc.html: Review queue, Creators and a link to the learner site.
-// There is no Earnings link until that screen exists.
+// The owner panel's navigation, as in docs/design/OwnerEarnings.dc.html: Review queue, Creators, Earnings and a link to the learner site.
 
 const items = [
   { label: "Review queue", href: ownerPath(), exact: false },
   { label: "Creators", href: ownerCreatorsPath(), exact: false },
+  { label: "Earnings", href: ownerEarningsPath().split("?")[0], exact: false },
+  { label: "Access", href: ownerAccessPath(), exact: false },
+  { label: "Requests", href: ownerRequestsPath(), exact: false },
 ] as const;
 
 const linkClass =

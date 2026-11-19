@@ -10,7 +10,7 @@ import { UnderstandingCheck } from "@/components/watch/UnderstandingCheck";
 import { UpNext } from "@/components/watch/UpNext";
 import { markLocked } from "@/lib/billing/access";
 import { signPlaybackTokens } from "@/lib/billing/playback";
-import { getSubscription, requireVideoAccess } from "@/lib/billing/subscription";
+import { getFullAccess, requireVideoAccess } from "@/lib/billing/subscription";
 import { getHost, getHosts, getTranscriptView, getVideo } from "@/lib/content";
 import { getUpNextVideos } from "@/lib/content/library";
 import { stageLabel } from "@/lib/content/taxonomy";
@@ -54,14 +54,14 @@ export async function WatchScreen({ params }: { params: Promise<{ language: stri
   }
 
   // The learner's own transcript layers and answer for this video come from their account.
-  const [initialLayers, initialAnswer, subscription] = await Promise.all([
+  const [initialLayers, initialAnswer, access] = await Promise.all([
     getLayers(learner.id, language.code),
     getAnswer(learner.id, language.code, video.slug),
-    getSubscription(learner.id),
+    getFullAccess(learner.id),
   ]);
 
   // Up next shows locked videos as locked, and autoplay only ever moves on to one the learner can watch.
-  const upNext = markLocked(await getUpNextVideos(slug, video.slug), subscription, new Date());
+  const upNext = markLocked(await getUpNextVideos(slug, video.slug), access.subscription, new Date(), access.manual);
   const transcriptView = await getTranscriptView(slug, video.slug);
   const next = upNext.find((v) => !v.locked);
   const playbackTokens = signPlaybackTokens(video) ?? undefined;

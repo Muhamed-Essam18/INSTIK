@@ -25,7 +25,7 @@ The MVP started without any admin panel (content as files). That changed in Nove
 
 ### Creator panel (invite only)
 
-9. **Dashboard**: videos uploaded, in review, approved and with changes requested; this month's counted views, watch hours, unique learners and average completion; views per week; earnings (estimated this month, last month final, next payout); top videos with their فاهم؟ answers; requests from Instik.
+9. **Dashboard**: videos uploaded, in review, approved and with changes requested; this month's counted views, watch hours, unique learners and average completion; views per week; earnings (estimated this month, last month final, next payout); top videos with their فاهم؟ answers; requests from Instik (open requests are written by the owners and shown to every creator).
 10. **Upload a video**: direct upload with progress, title, stage, topic, language, description and a pre-submit checklist. Creators do not write transcripts.
 11. **My videos**: every video with its status, latest note from Instik and views.
 12. **Video status**: the note from Instik, the full status history, upload a new version.
@@ -35,7 +35,7 @@ The MVP started without any admin panel (content as files). That changed in Nove
 13. **Review queue**: oldest first, with counts.
 14. **Review and transcript**: player, review checklist, stage and access (free or full) set by Instik, the transcript editor, and Reject / Request changes / Approve and publish. A note is required for reject and changes; approve needs the full checklist.
 15. **Creators**: invite by email (one-time link, expires after 7 days), pause and resume, per-creator stats.
-16. **Earnings**: monthly statement from gross revenue to net, the 80/20 split, each creator's share, mark as paid, close the month.
+16. **Earnings**: monthly statement from gross revenue to net, the 80/20 split, each creator's share, mark as paid, close the month. Until a payment gateway is chosen, an owner enters each month's revenue (gross, VAT, payment fees, refunds) by hand; a correction to a closed month is entered as an adjustment in the open month and shared 80/20. The owner panel also has a Requests page (content requests for creators) and an Access page (give or remove full access to any account by hand, every change recorded).
 
 ## Brand behaviours the product must enforce
 
@@ -67,7 +67,7 @@ Hours, Roadmap, Hosts, Up next, Done for today. Stages: Hear it → Follow it �
 
 - **Learner**: everyone with an account.
 - **Creator**: invite only. Upload and manage their own videos, see their own stats and earnings, never anyone else's. An owner sends the invitation by name and email; the link works once, lasts 7 days, and must be opened signed in with the invited email address. Accepting it makes the account a creator and creates their host page.
-- **Owner**: Instik team, set from a configured list of owner emails (the `OWNER_EMAILS` setting) and never stored. Review, write transcripts, invite and pause creators, run monthly earnings.
+- **Owner**: Instik team, set from a configured list of owner emails (the `OWNER_EMAILS` setting) and never stored. Review, write transcripts, invite and pause creators, run monthly earnings, post content requests, and give or remove full access by hand (for testing, creators or gifts; counted views from those accounts count as paying learners).
 
 ## Creator earnings
 

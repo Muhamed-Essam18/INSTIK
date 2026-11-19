@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   listInvites: vi.fn(),
   getQueue: vi.fn(),
   listCreators: vi.fn(),
+  getDashboard: vi.fn(),
   ownerEmails: "boss@instik.test",
 }));
 
@@ -19,6 +20,7 @@ vi.mock("@/lib/env", () => ({ env: () => ({ OWNER_EMAILS: mocks.ownerEmails }) }
 vi.mock("@/lib/invites/instance", () => ({ inviteService: () => ({ listInvites: mocks.listInvites }) }));
 vi.mock("@/lib/review/instance", () => ({ reviewService: () => ({ getQueue: mocks.getQueue }) }));
 vi.mock("@/lib/creators/instance", () => ({ creatorsService: () => ({ listCreators: mocks.listCreators }) }));
+vi.mock("@/lib/earnings/instance", () => ({ earningsService: () => ({ getDashboard: mocks.getDashboard }) }));
 vi.mock("@/lib/creators/actions", () => ({ pauseCreator: vi.fn(), resumeCreator: vi.fn() }));
 vi.mock("@/lib/invites/actions", () => ({ createInvite: vi.fn(), revokeInvite: vi.fn(), resendInvite: vi.fn(), acceptInvite: vi.fn() }));
 vi.mock("next/navigation", () => ({
@@ -49,6 +51,20 @@ beforeEach(() => {
   Object.values(mocks).forEach((m) => typeof m === "function" && m.mockReset());
   mocks.listInvites.mockResolvedValue([]);
   mocks.listCreators.mockResolvedValue([]);
+  mocks.getDashboard.mockResolvedValue({
+    creatorName: "Sam",
+    languageCode: "arz",
+    month: "2026-11",
+    counts: { uploaded: 0, inReview: 0, approved: 0, changes: 0 },
+    views: 0,
+    watchSeconds: 0,
+    learners: 0,
+    averageCompletion: null,
+    weeks: [0, 1, 2, 3, 4].map((i) => ({ label: `Week ${i}`, count: 0, current: i === 4 })),
+    top: [],
+    earnings: { estimateCents: null, currency: "EUR", lastMonth: { month: "2026-10", state: "open" }, nextPayoutDay: "2026-12-05" },
+    requests: [],
+  });
   mocks.getQueue.mockResolvedValue({ counts: { needsReview: 0, transcriptInProgress: 0, waitingOnCreator: 0, approvedThisMonth: 0 }, rows: [] });
 });
 afterEach(cleanup);
@@ -62,7 +78,7 @@ describe.each([
   it("is empty and addressed to the right role", async () => {
     as(allowed);
     render(await Screen());
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Hello, Sam|Creators|Review queue|Waiting on creators/);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toMatch(/Welcome back, Sam|Creators|Review queue|Waiting on creators/);
   });
 
   it("sends a signed-out visitor to sign in and back", async () => {
@@ -77,12 +93,15 @@ describe.each([
 });
 
 describe("what the pages show", () => {
-  it("shows nothing but an empty note on the creator home, and never reads videos or invitations", async () => {
+  it("shows the creator's own dashboard with calm empty states, and never reads invitations or the review queue", async () => {
     as("creator");
     render(await CreatorScreen());
-    expect(screen.getByText(/statistics will appear here once your videos are live/i)).toBeTruthy();
+    expect(screen.getByText("Videos uploaded")).toBeTruthy();
+    expect(screen.getByText("Not available yet")).toBeTruthy();
+    expect(screen.getByText(/Nothing here yet/)).toBeTruthy();
+    expect(screen.getByText("No requests right now.")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Upload a video" }).getAttribute("href")).toBe("/creator/upload");
-    expect(screen.getByRole("link", { name: "My videos" }).getAttribute("href")).toBe("/creator/videos");
+    expect(mocks.getDashboard).toHaveBeenCalledTimes(1);
     expect(mocks.listInvites).not.toHaveBeenCalled();
     expect(mocks.getQueue).not.toHaveBeenCalled();
   });

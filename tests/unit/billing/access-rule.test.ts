@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   canWatch,
   hasFullAccess,
+  markLocked,
   isStale,
   STALE_AFTER_DAYS,
   type SubscriptionFacts,
@@ -83,4 +84,27 @@ describe("other statuses", () => {
       expect(hasFullAccess(sub(status, 20), now)).toBe(false);
     },
   );
+});
+
+describe("a manual grant (spec 11)", () => {
+  it("gives access with no subscription at all", () => {
+    expect(hasFullAccess(null, now, true)).toBe(true);
+    expect(hasFullAccess(undefined, now, true)).toBe(true);
+  });
+  it("gives access when the subscription has ended or is stale", () => {
+    expect(hasFullAccess(sub("CANCELED", -30), now, true)).toBe(true);
+    expect(hasFullAccess(sub("ACTIVE", -(STALE_AFTER_DAYS + 1)), now, true)).toBe(true);
+  });
+  it("changes nothing when it is false or left out", () => {
+    expect(hasFullAccess(null, now, false)).toBe(false);
+    expect(hasFullAccess(null, now)).toBe(false);
+    expect(hasFullAccess(sub("ACTIVE", 20), now, false)).toBe(true);
+    expect(hasFullAccess(sub("CANCELED", 20), now, false)).toBe(false);
+  });
+  it("unlocks a full-access video, and canWatch and markLocked agree", () => {
+    expect(canWatch(full, null, now)).toBe(false);
+    expect(canWatch(full, null, now, true)).toBe(true);
+    expect(markLocked([full, free], null, now, true).map((v) => v.locked)).toEqual([false, false]);
+    expect(markLocked([full, free], null, now).map((v) => v.locked)).toEqual([true, false]);
+  });
 });

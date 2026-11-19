@@ -1,7 +1,7 @@
 import { LibraryBrowser } from "@/components/library/LibraryBrowser";
 import { PickUpBanner } from "@/components/library/PickUpBanner";
 import { canWatch, markLocked } from "@/lib/billing/access";
-import { getSubscription } from "@/lib/billing/subscription";
+import { getFullAccess } from "@/lib/billing/subscription";
 import { getVideos } from "@/lib/content";
 import type { LibraryVideo } from "@/lib/content/search";
 import { getLibraryProgress } from "@/lib/hours/queries";
@@ -20,16 +20,16 @@ export async function LibraryProgress({ languageSlug, videos }: { languageSlug: 
   if (!language || !learner) return <LibraryBrowser languageSlug={languageSlug} videos={videos} />;
 
   const now = new Date();
-  const subscription = await getSubscription(learner.id);
+  const { subscription, manual } = await getFullAccess(learner.id);
   if (!(await getProfile(learner.id, language.code))) {
-    return <LibraryBrowser languageSlug={languageSlug} videos={markLocked(videos, subscription, now)} />;
+    return <LibraryBrowser languageSlug={languageSlug} videos={markLocked(videos, subscription, now, manual)} />;
   }
 
   // "Pick up where you left off" skips a video the learner can no longer watch.
   const approved = new Map((await getVideos(languageSlug)).map((v) => [v.slug, v]));
   const canPlay = (slug: string) => {
     const video = approved.get(slug);
-    return video ? canWatch(video, subscription, now) : false;
+    return video ? canWatch(video, subscription, now, manual) : false;
   };
   const { pickUp, watchedSlugs } = await getLibraryProgress(learner.id, language.code, canPlay);
   const watched = new Set(watchedSlugs);

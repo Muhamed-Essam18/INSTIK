@@ -29,3 +29,17 @@ Sample content (host names, video titles, Arabic lines) and bracketed placeholde
 | OwnerEarnings.dc.html | Owner: monthly earnings |
 
 All names and numbers on these screens are sample data.
+
+## Built without a design (constitution VI)
+
+Owner-only utility screens (forms, lists and settings used only by the Instik team) may be built from the approved owner components and the design
+tokens without a separate design, and are recorded here afterwards. They still follow the tokens, contrast, 44px targets, keyboard and motion rules.
+Learner and creator screens always need an approved design first.
+
+| Screen | Route | Spec | Notes |
+| --- | --- | --- | --- |
+| Earnings additions: revenue form, adjustments, close month, mark as paid, payment history | `/owner/earnings` | 11 | Added to the approved `OwnerEarnings.dc.html` statement |
+| Full access: give or remove Full access by hand, active grants and history | `/owner/access` | 11 | No design yet |
+| Requests: write, edit and close the content requests creators see | `/owner/requests` | 11 | No design yet; the creator side follows `CreatorDashboard.dc.html` ("What learners need next") |
+
+These could be added to the design files when the canvas is next updated.

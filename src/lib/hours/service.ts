@@ -10,6 +10,8 @@ import { dayToDate } from "./queries";
 import { advanceStage } from "./stages";
 import { hoursOf, todaySeconds, totalSeconds } from "./totals";
 import { clampPosition, isWatched } from "./watched";
+import { crossesThreshold } from "@/lib/earnings/counting";
+import { recordCountedViewIfCrossed, type Crossing } from "@/lib/earnings/record-view";
 import { getVideo } from "@/lib/content";
 import type { Stage } from "@/lib/learner/profile-rules";
 
@@ -91,7 +93,11 @@ export async function recordHeartbeat(input: HeartbeatInput): Promise<HeartbeatR
   if (!language || !video) return { ok: false, code: "unknown-video" };
   const now = input.nowMs ?? Date.now();
 
-  return db().$transaction(async (tx): Promise<HeartbeatResult> => {
+  // Day parts that crossed 30 seconds with this heartbeat. They are counted after the commit, never inside the transaction.
+  const crossings: Crossing[] = [];
+
+  const result = await db().$transaction(async (tx): Promise<HeartbeatResult> => {
+    crossings.length = 0;
     const row = await lockProfile(tx, input.userId, input.languageCode);
     if (!row) return { ok: false, code: "no-profile" };
 
@@ -110,7 +116,7 @@ export async function recordHeartbeat(input: HeartbeatInput): Promise<HeartbeatR
 
     const accepted = Math.floor(decision.accepted);
     for (const part of wholeParts(splitByLocalDay(decision.startMs, accepted, input.timeZone), accepted)) {
-      await tx.watchSession.upsert({
+      const session = await tx.watchSession.upsert({
         where: {
           userId_languageCode_videoSlug_day: {
             userId: input.userId,
@@ -128,6 +134,10 @@ export async function recordHeartbeat(input: HeartbeatInput): Promise<HeartbeatR
         },
         update: { seconds: { increment: part.seconds } },
       });
+      const secondsBefore = session.seconds - part.seconds;
+      if (crossesThreshold(secondsBefore, part.seconds)) {
+        crossings.push({ userId: input.userId, languageCode: input.languageCode, videoSlug: input.videoSlug, day: part.day, secondsBefore, secondsAfter: session.seconds });
+      }
     }
 
     // Where the learner is: the server trusts the video's real length, not the client's.
@@ -169,6 +179,16 @@ export async function recordHeartbeat(input: HeartbeatInput): Promise<HeartbeatR
       chime: crossed && (user?.hourSound ?? false),
     };
   });
+
+  // After the commit: a counting failure is logged and swallowed inside, so it can never change this result or the learner's hours.
+  if (result.ok && crossings.length > 0) {
+    try {
+      await recordCountedViewIfCrossed(crossings, now);
+    } catch {
+      // Counting has already logged its own failure; nothing it does may change what the learner gets back.
+    }
+  }
+  return result;
 }
 
 export type EndOfVideoResult = { ok: true; showDone: boolean } | { ok: false; code: "no-profile" | "unknown-video" };

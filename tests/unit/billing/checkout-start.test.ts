@@ -13,7 +13,14 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/billing/enabled", () => ({ billingEnabled: mocks.billingEnabled }));
 vi.mock("@/lib/session", () => ({ getLearner: mocks.getLearner }));
-vi.mock("@/lib/billing/subscription", () => ({ getSubscription: mocks.getSubscription }));
+vi.mock("@/lib/billing/subscription", () => ({
+  getSubscription: mocks.getSubscription,
+  getFullAccess: async (id: string) => {
+    const { hasFullAccess } = await import("@/lib/billing/access");
+    const subscription = await mocks.getSubscription(id);
+    return { subscription, manual: false, full: hasFullAccess(subscription, new Date()) };
+  },
+}));
 vi.mock("@/lib/billing/checkout", () => ({
   ensureCustomer: mocks.ensureCustomer,
   findOpenSubscription: mocks.findOpenSubscription,

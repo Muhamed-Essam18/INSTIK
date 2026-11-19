@@ -3,9 +3,8 @@ import { Suspense } from "react";
 import { FullAccessAction } from "@/components/billing/FullAccessAction";
 import { StartCta } from "@/components/marketing/StartLink";
 import { coralButton, inkButton } from "@/components/marketing/buttons";
-import { hasFullAccess } from "@/lib/billing/access";
 import { billingEnabled } from "@/lib/billing/enabled";
-import { getSubscription } from "@/lib/billing/subscription";
+import { getFullAccess } from "@/lib/billing/subscription";
 import { pricing } from "@/lib/marketing/copy";
 import { onboardingPath, settingsPath } from "@/lib/routes";
 import { getLearner } from "@/lib/session";
@@ -18,7 +17,7 @@ async function Slot() {
   if (!billingEnabled()) return <StartCta className={`${coralButton} ${shape}`}>{pricing.full.cta}</StartCta>;
 
   const learner = await getLearner();
-  if (learner && hasFullAccess(await getSubscription(learner.id), new Date())) {
+  if (learner && (await getFullAccess(learner.id)).full) {
     return (
       <div className="flex flex-col gap-3">
         <p className="m-0 text-center text-body font-semibold">You have Full access.</p>

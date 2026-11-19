@@ -1,19 +1,20 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 -> 2.0.0
-Bump rationale: MAJOR. Principle VIII ("Content as Files", no admin panel) is removed and
-  redefined; the MVP scope in docs/product.md now includes a creator programme.
+Version change: 2.0.0 -> 2.1.0
+Bump rationale: MINOR. Principle VI gains a defined exception for owner-only utility screens
+  (and an explicit rule that learner and creator screens need an approved design first). No
+  principle is removed or renamed.
 Modified principles:
-  - VIII. Content as Files -> VIII. Content in the Database, Published by Review
-  - X. Privacy and Security (access rules now defer to XI; webhook signatures verified)
-  - I. Product Source of Truth (scope now includes creator and owner panels, screens 9-16)
-  - IV. Multi-Language by Design (rule unchanged; clarified that languages are the only
-    content kept as data files)
-Added sections:
-  - XI. Roles and Permissions
-  - XII. Money Rules
-  - XIII. Direct Video Upload
-Removed sections: none (VIII replaced in place)
+  - VI. Design Fidelity (owner-only utility screens may be built from approved owner components
+    and tokens without a separate design, if recorded in docs/design/README.md afterwards;
+    learner and creator screens still need an approved design first)
+Added sections: none
+Removed sections: none
+Follow-up:
+  - docs/design/README.md has no "built without a design" list yet; create it when the first
+    such screen is recorded (spec 11 owner Access and Requests pages, revenue form).
+  - Spec 11 plan Complexity Tracking row for principle VI can cite this amendment.
+Earlier amendment (2.0.0, 2026-11-11): Principle VIII redefined, principles XI-XIII added.
 Deferred items:
   - docs/brand-guide.pdf could not be rendered during drafting (pdftoppm missing); re-check.
   - docs/design-tokens.json not read during drafting; verify token names against it.
@@ -76,6 +77,12 @@ that a token covers. Match the approved screens for layout, spacing, colour, typ
 - Use real semantic elements and provide full keyboard access, visible focus and labelled controls.
 - Motion is calm and short; no bouncing or confetti.
 Deviation from an approved screen requires updating the design first.
+- Learner and creator screens MUST have an approved design in `docs/design/` before they are built.
+- Owner-only utility screens (forms, lists and settings used only by the Instik team, never shown
+  to a learner or a creator) MAY be built from the approved owner components and design tokens
+  without a separate design. Each one MUST be recorded in `docs/design/README.md` after it is
+  built (screen, route and the spec that added it), and it MUST still meet every rule above:
+  tokens only, contrast, 44px targets, semantic elements, keyboard access and calm motion.
 
 ### VII. Stack Discipline
 Next.js App Router, React, TypeScript (strict), the Tailwind version installed by create-next-app,
@@ -183,4 +190,4 @@ MINOR for adding a principle or materially expanding guidance, PATCH for clarifi
 specs, plans and reviews MUST verify compliance; complexity beyond these rules MUST be
 justified. Runtime guidance for agents lives in `AGENTS.md`.
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-11
+**Version**: 2.1.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-18

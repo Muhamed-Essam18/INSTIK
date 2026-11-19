@@ -56,6 +56,8 @@ model User {
   role          Role      @default(LEARNER)
   // Creator programme: set by an owner to pause a creator (no uploads or submissions); null means active.
   pausedAt      DateTime?
+  // Spec 11: set while an owner has given this account full access by hand (history in AccessGrantEvent); null otherwise.
+  manualAccessAt DateTime?
 
   accounts        Account[]
   sessions         Session[]
@@ -73,6 +75,12 @@ model User {
   invitesUsed      CreatorInvite[]       @relation("InviteUser")
   pauseEvents      CreatorPauseEvent[]   @relation("PausedCreator")
   pausesMade       CreatorPauseEvent[]   @relation("PauseActor")
+  accessEvents     AccessGrantEvent[]    @relation("GrantedTo")
+  accessGiven      AccessGrantEvent[]    @relation("GrantedBy")
+  countedAsLearner CountedView[]         @relation("CountedLearner")
+  countedAsCreator CountedView[]         @relation("CountedCreator")
+  creatorEarnings  CreatorEarning[]      @relation("EarnedBy")
+  payouts          Payout[]              @relation("PaidTo")
 }
 
 model Account {
@@ -475,4 +483,199 @@ model DecisionEmail {
   // A short plain reason, at most 200 characters (checked in code); never a provider response body.
   failure   String?
   createdAt DateTime     @default(now())
+}
+
+// ---- Spec 11: creator statistics and monthly earnings ----
+// All amounts are integer cents with a currency next to them. Months are "YYYY-MM" in Europe/Warsaw.
+
+enum RevenueSourceKind {
+  MANUAL
+  GATEWAY
+}
+
+enum MonthStatus {
+  OPEN
+  CLOSED
+}
+
+enum PayoutKind {
+  PAID
+  REVERSAL
+}
+
+enum GrantKind {
+  GRANTED
+  REMOVED
+}
+
+enum GrantReason {
+  TESTING
+  CREATOR
+  GIFT
+  OTHER
+}
+
+enum RequestStatus {
+  OPEN
+  CLOSED
+}
+
+// One learner's one video on one day that earned the creator a view. Never updated: a trigger refuses UPDATE and DELETE
+// (except the SET NULL that deleting an account causes). userId and creatorId become null when an account is removed, so the creator's total stays.
+model CountedView {
+  id        String   @id @default(cuid())
+  userId    String?
+  videoId   String
+  creatorId String?
+  // The learner's day (same as WatchSession.day); drives the once-a-day rule.
+  day       DateTime @db.Date
+  countedAt DateTime
+  // Warsaw month and day of countedAt, set once at insert and never recomputed.
+  monthKey  String
+  warsawDay DateTime @db.Date
+
+  user    User? @relation("CountedLearner", fields: [userId], references: [id], onDelete: SetNull)
+  creator User? @relation("CountedCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, videoId, day])
+  @@index([creatorId, monthKey])
+  @@index([creatorId, warsawDay])
+  @@index([videoId, monthKey])
+}
+
+// The one revenue record per month, whatever its source (entered by an owner now, a payment gateway later).
+model MonthlyRevenue {
+  month        String            @id
+  currency     String
+  // Each 0 to 1,000,000,000 (checked in code); whole cents.
+  grossCents   Int
+  vatCents     Int
+  feesCents    Int
+  refundsCents Int
+  source       RevenueSourceKind
+  // Starts at 1; each save adds 1 and must match the version the editor loaded.
+  version      Int
+  updatedById  String?
+  updatedAt    DateTime          @updatedAt
+}
+
+// Every save of a month's revenue. Append-only: a trigger refuses UPDATE and DELETE.
+model RevenueChange {
+  id           String   @id @default(cuid())
+  month        String
+  currency     String
+  grossCents   Int
+  vatCents     Int
+  feesCents    Int
+  refundsCents Int
+  version      Int
+  byId         String?
+  at           DateTime @default(now())
+
+  @@index([month, at])
+}
+
+// A correction entered in an open month for an earlier closed one. Append-only; a mistake is cancelled by an opposite entry.
+model RevenueAdjustment {
+  id          String   @id @default(cuid())
+  month       String
+  // Signed, not zero, within plus or minus 1,000,000,000 (checked in code).
+  amountCents Int
+  // The month's currency, copied from that month's revenue record when the adjustment is entered.
+  currency    String
+  // 1 to 200 characters (checked in code): which month it corrects and why.
+  note        String
+  byId        String?
+  at          DateTime @default(now())
+
+  @@index([month, at])
+}
+
+// A month that has been closed. The frozen figures never change; a trigger refuses any update once closed.
+model EarningsMonth {
+  month            String      @id
+  status           MonthStatus @default(OPEN)
+  closedAt         DateTime?
+  closedById       String?
+  currency         String
+  grossCents       Int
+  vatCents         Int
+  feesCents        Int
+  refundsCents     Int
+  adjustmentsCents Int
+  netCents         Int
+  poolCents        Int
+  instikCents      Int
+  totalViews       Int
+}
+
+// One creator's frozen earnings for a closed month. A trigger refuses UPDATE and DELETE (except SET NULL on creatorId).
+model CreatorEarning {
+  id            String  @id @default(cuid())
+  month         String
+  creatorId     String?
+  // The creator's name when the month was closed.
+  creatorName   String
+  views         Int
+  earningsCents Int
+  currency      String
+
+  creator User? @relation("EarnedBy", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  @@unique([month, creatorId])
+  @@index([creatorId])
+}
+
+// A payment to a creator for a closed month, or the reversal of one. Append-only.
+model Payout {
+  id          String     @id @default(cuid())
+  month       String
+  creatorId   String?
+  kind        PayoutKind
+  // Always positive; copied from the closed earning by the service, never from input.
+  amountCents Int
+  currency    String
+  // 1 to 120 characters (checked in code): the bank transfer reference, or the reason for a reversal.
+  reference   String
+  byId        String?
+  at          DateTime   @default(now())
+  reversesId  String?
+
+  creator User? @relation("PaidTo", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  @@index([month, creatorId])
+}
+
+// Every manual grant and removal of full access. Append-only: a trigger refuses UPDATE and DELETE.
+model AccessGrantEvent {
+  id     String      @id @default(cuid())
+  userId String
+  kind   GrantKind
+  reason GrantReason
+  // Up to 200 characters (checked in code).
+  note   String?
+  byId   String?
+  at     DateTime    @default(now())
+
+  user User  @relation("GrantedTo", fields: [userId], references: [id], onDelete: Cascade)
+  by   User? @relation("GrantedBy", fields: [byId], references: [id], onDelete: SetNull)
+
+  @@index([userId, at])
+}
+
+// A short note from the owners about the video learners need next, shown to every creator while open.
+model ContentRequest {
+  id          String        @id @default(cuid())
+  // Slugs from src/lib/content/taxonomy.ts (checked in code).
+  stage       String
+  topic       String
+  // 1 to 200 characters (checked in code).
+  text        String
+  status      RequestStatus @default(OPEN)
+  createdById String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  closedAt    DateTime?
+
+  @@index([status, createdAt])
 }

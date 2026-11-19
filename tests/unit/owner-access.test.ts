@@ -2,6 +2,9 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { createCreatorsService, type CreatorsStore } from "@/lib/creators/service";
 import { createInviteService, type InviteStore } from "@/lib/invites/service";
+import { setupEarnings } from "../helpers/earnings-memory";
+import { account, setupGrants } from "../helpers/grants-memory";
+import { setupRequests } from "../helpers/requests-memory";
 import { ForbiddenError } from "@/lib/roles/forbidden";
 import type { Actor } from "@/lib/roles/actor";
 import { segment, setupReview, video } from "../helpers/review-memory";
@@ -76,6 +79,100 @@ describe("the creator management service", () => {
   });
 });
 
+describe("the earnings service (spec 11)", () => {
+  const figures = { grossCents: 100, vatCents: 0, feesCents: 0, refundsCents: 0 };
+  // Every function the earnings service has, each called with the arguments it needs. A new function without a line here fails the first test.
+  const calls: Record<string, (s: ReturnType<typeof setupEarnings>["service"], a: Actor | null) => Promise<unknown>> = {
+    getStatement: (s, a) => s.getStatement(a, "2026-10"),
+    listMonths: (s, a) => s.listMonths(a),
+    saveRevenue: (s, a) => s.saveRevenue(a, { month: "2026-11", figures, expectedVersion: 0 }),
+    addAdjustment: (s, a) => s.addAdjustment(a, { month: "2026-11", amountCents: 100, note: "x" }),
+    closeMonth: (s, a) => s.closeMonth(a, "2026-10"),
+    markPaid: (s, a) => s.markPaid(a, { month: "2026-10", creatorId: "ann", reference: "x" }),
+    reversePayout: (s, a) => s.reversePayout(a, { payoutId: "p", reason: "x" }),
+  };
+
+  it("has a check here for every owner function it exports (getDashboard is the creator's own, tested in dashboard-service.test.ts)", () => {
+    expect([...Object.keys(calls), "getDashboard"].sort()).toEqual(Object.keys(setupEarnings().service).sort());
+  });
+
+  it.each(Object.keys(calls))("%s refuses everyone but an owner before touching the database", async (name) => {
+    for (const actor of nobody) {
+      const t = setupEarnings({ revenue: { "2026-10": {} } });
+      await expect(calls[name](t.service, actor)).rejects.toBeInstanceOf(ForbiddenError);
+      expect(t.state.changes).toHaveLength(0);
+      expect(t.state.adjustments).toHaveLength(0);
+      expect(t.state.payouts).toHaveLength(0);
+      expect(t.state.closed.size).toBe(0);
+    }
+  });
+
+  it("every earnings action calls requireOwner and takes no actor, role, user id, payout amount or currency from its input", () => {
+    const source = readFileSync("src/lib/earnings/actions.ts", "utf8");
+    const actions = [...source.matchAll(/export async function (\w+)\(([\s\S]*?)\n\}/g)];
+    expect(actions.length).toBeGreaterThan(0);
+    for (const [, name, body] of actions) expect(body, name).toMatch(/requireOwner\(/);
+    expect(source).not.toMatch(/actor:\s*z\.|role:\s*z\.|actorId|amountCents:\s*z\.|currency:\s*z\./);
+  });
+
+  it("still serves an owner who is also a creator", async () => {
+    const t = setupEarnings();
+    expect(await t.service.listMonths(ownerWhoIsCreator)).toHaveLength(1);
+  });
+});
+
+describe("the manual access service (spec 11)", () => {
+  // Every function the grants service has, each called with the arguments it needs. A new function without a line here fails the first test.
+  const calls: Record<string, (s: ReturnType<typeof setupGrants>["service"], a: Actor | null) => Promise<unknown>> = {
+    grantAccess: (s, a) => s.grantAccess(a, { email: "mona@example.com", reason: "GIFT" }),
+    removeAccess: (s, a) => s.removeAccess(a, { email: "mona@example.com" }),
+    listGrants: (s, a) => s.listGrants(a),
+  };
+
+  it("has a check here for every function it exports", () => {
+    expect(Object.keys(calls).sort()).toEqual(Object.keys(setupGrants().service).sort());
+  });
+
+  it.each(Object.keys(calls))("%s refuses everyone but an owner and changes nothing", async (name) => {
+    for (const actor of nobody) {
+      const t = setupGrants({ accounts: [account("mona", { manualAccessAt: new Date() })] });
+      await expect(calls[name](t.service, actor)).rejects.toBeInstanceOf(ForbiddenError);
+      expect(t.state.events).toHaveLength(0);
+      expect(t.state.users.get("mona")!.manualAccessAt).not.toBeNull();
+    }
+  });
+
+  it("the grants actions never take an actor, a role or a user id from their input", () => {
+    const source = readFileSync("src/lib/grants/actions.ts", "utf8");
+    expect(source).not.toMatch(/actor:\s*z\.|role:\s*z\.|actorId|userId:\s*z\./);
+  });
+});
+
+describe("the content requests service (spec 11)", () => {
+  const food = { stage: "follow-it", topic: "food", text: "Cooking at home." };
+  // The owner-only functions, each called with the arguments it needs. listOpenRequests is also open to creators and is tested in requests-service.test.ts.
+  const calls: Record<string, (s: ReturnType<typeof setupRequests>["service"], a: Actor | null) => Promise<unknown>> = {
+    createRequest: (s, a) => s.createRequest(a, food),
+    editRequest: (s, a) => s.editRequest(a, { id: "r1", ...food }),
+    closeRequest: (s, a) => s.closeRequest(a, { id: "r1" }),
+    listAllRequests: (s, a) => s.listAllRequests(a),
+  };
+
+  it("has a check here for every owner function it exports", () => {
+    expect([...Object.keys(calls), "listOpenRequests"].sort()).toEqual(Object.keys(setupRequests().service).sort());
+  });
+
+  it.each(Object.keys(calls))("%s refuses everyone but an owner and changes nothing", async (name) => {
+    for (const actor of nobody) {
+      const t = setupRequests();
+      await t.service.createRequest({ id: "boss", email: "boss@x.com", name: "Boss", role: "owner" }, food);
+      await expect(calls[name](t.service, actor)).rejects.toBeInstanceOf(ForbiddenError);
+      expect(t.state.rows).toHaveLength(1);
+      expect(t.state.rows[0].status).toBe("OPEN");
+    }
+  });
+});
+
 describe("the invitation service's owner functions", () => {
   const store: InviteStore = new Proxy({} as InviteStore, { get: () => untouched });
   const service = createInviteService({ store, mailer: untouched, ownerEmails: [], linkFor: (t) => t, defaultLanguageCode: "arz" });
@@ -88,7 +185,7 @@ describe("the invitation service's owner functions", () => {
 });
 
 describe("every server action checks the owner role again", () => {
-  const files = ["src/lib/review/actions.ts", "src/lib/creators/actions.ts"];
+  const files = ["src/lib/review/actions.ts", "src/lib/creators/actions.ts", "src/lib/earnings/actions.ts", "src/lib/grants/actions.ts", "src/lib/requests/actions.ts"];
   const owned = [...readFileSync("src/lib/invites/actions.ts", "utf8").matchAll(/export async function (\w+)\(([\s\S]*?)\n\}/g)].filter((m) => ["createInvite", "revokeInvite", "resendInvite"].includes(m[1]));
 
   it.each(files)("%s: each exported action calls requireOwner", (file) => {

@@ -36,6 +36,16 @@ See `specs/002-content-and-library/contracts/content-files.md` for the file form
   review queue at `/owner` (open a video to write its transcript and approve, request changes or reject it; each
   decision emails the creator) and the creators table at `/owner/creators` (resend an invite, pause or resume a creator).
   A paused creator cannot upload, save, submit or edit their host page; their live videos stay up.
+- **Earnings (spec 11)**: a learner with active Full access (a paid subscription or a manual grant) who reaches 30 honest
+  seconds on a video in a day earns that video's creator one counted view, once per learner, video and day; a creator's
+  own watching of their own videos never counts. Creators see their own numbers only, on their dashboard at `/creator`.
+  Owners run the money at `/owner/earnings`: until a payment gateway is chosen they type in each month's revenue
+  (gross, VAT, payment fees, refunds); net revenue is split 80% to the creator pool (shared by counted views, in whole
+  cents, never more than the pool) and 20% to Instik. Closing a month locks it (corrections are adjustments in the open
+  month), and each creator is then marked as paid by hand with a reference. `/owner/access` gives or removes Full access
+  to any account by hand (every change recorded) and `/owner/requests` posts the content requests creators see.
+  Months, weeks and days follow Europe/Warsaw time. The earnings logic lives in `src/lib/earnings/`; the revenue figures
+  come through one `RevenueSource`, so a payment gateway can fill them later without changing it.
 - **Import the sample content** into the database: `npm run import:content` (add `-- --dry-run` to see what would
   happen, `-- --json` for a machine-readable report). It is safe to run again: rows that already exist are never
   changed. A video whose transcript file is present but invalid is saved as a hidden Draft and reported; fix the file

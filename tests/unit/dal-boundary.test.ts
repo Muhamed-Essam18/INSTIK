@@ -21,6 +21,11 @@ const allowed = [
   "src/lib/content/status-store.ts",
   "src/lib/creators/store.ts",
   "src/lib/creator/store.ts",
+  // Spec 11: records a counted view after a heartbeat commits (its own queries and its own try/catch, so it can never affect Hours).
+  "src/lib/earnings/record-view.ts",
+  "src/lib/earnings/store.ts",
+  "src/lib/grants/store.ts",
+  "src/lib/requests/store.ts",
   "src/lib/hours/queries.ts",
   "src/lib/hours/service.ts",
   "src/lib/invites/store.ts",

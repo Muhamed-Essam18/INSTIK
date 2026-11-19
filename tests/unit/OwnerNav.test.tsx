@@ -17,14 +17,16 @@ function current(path: string): string[] {
 }
 
 describe("OwnerNav", () => {
-  it("has Review queue, Creators and the learner site, and no Earnings link", () => {
+  it("has Review queue, Creators, Earnings, Access, Requests and the learner site", () => {
     pathname.value = "/owner";
     render(<OwnerNav />);
     expect(screen.getByRole("navigation", { name: "Owner panel" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Review queue" }).getAttribute("href")).toBe("/owner");
     expect(screen.getByRole("link", { name: "Creators" }).getAttribute("href")).toBe("/owner/creators");
     expect(screen.getByRole("link", { name: "Learner site" }).getAttribute("href")).toMatch(/^\/learn\//);
-    expect(screen.queryByRole("link", { name: /earnings/i })).toBeNull();
+    expect(screen.getByRole("link", { name: "Earnings" }).getAttribute("href")).toBe("/owner/earnings");
+    expect(screen.getByRole("link", { name: "Access" }).getAttribute("href")).toBe("/owner/access");
+    expect(screen.getByRole("link", { name: "Requests" }).getAttribute("href")).toBe("/owner/requests");
   });
 
   it("gives every link a 44px target", () => {

@@ -11,6 +11,9 @@ import {
   muxWebhookPath,
   ownerCreatorsPath,
   ownerCreatorPath,
+  ownerEarningsPath,
+  ownerAccessPath,
+  ownerRequestsPath,
   ownerReviewVideoPath,
   ownerWaitingPath,
   ownerPath,
@@ -97,6 +100,10 @@ describe("creator programme paths", () => {
     expect(ownerReviewVideoPath("v1")).toBe("/owner/review/v1");
     expect(ownerWaitingPath()).toBe("/owner/waiting");
     expect(ownerCreatorPath("u1")).toBe("/owner/creators/u1");
+    expect(ownerEarningsPath()).toBe("/owner/earnings");
+    expect(ownerEarningsPath("2026-11")).toBe("/owner/earnings?month=2026-11");
+    expect(ownerAccessPath()).toBe("/owner/access");
+    expect(ownerRequestsPath()).toBe("/owner/requests");
     expect(INVITE_LIFETIME_DAYS).toBe(7);
   });
 });

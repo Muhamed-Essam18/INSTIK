@@ -89,6 +89,17 @@ vi.mock("@/lib/billing/subscription", () => ({
     cancelAtPeriodEnd: false,
     stripeSubscriptionId: "sub_1",
   }),
+  getFullAccess: async () => ({
+    subscription: {
+      status: "ACTIVE",
+      plan: "MONTHLY",
+      currentPeriodEnd: new Date(Date.now() + 86_400_000),
+      cancelAtPeriodEnd: false,
+      stripeSubscriptionId: "sub_1",
+    },
+    manual: false,
+    full: true,
+  }),
   requireVideoAccess: async () => ({ ok: true }),
 }));
 // The marketing call to action and log-in link read the session on the server; here they are the signed-out links.

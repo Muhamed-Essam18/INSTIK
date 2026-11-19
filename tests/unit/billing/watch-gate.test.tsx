@@ -29,6 +29,11 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/billing/subscription", () => ({
   requireVideoAccess: mocks.requireVideoAccess,
   getSubscription: mocks.getSubscription,
+  getFullAccess: async (id: string) => {
+    const { hasFullAccess } = await import("@/lib/billing/access");
+    const subscription = await mocks.getSubscription(id);
+    return { subscription, manual: false, full: hasFullAccess(subscription, new Date()) };
+  },
 }));
 vi.mock("@/lib/billing/playback", () => ({ signPlaybackTokens: mocks.signPlaybackTokens }));
 vi.mock("@/lib/learner/preferences", () => ({ getLayers: mocks.getLayers, getAnswer: mocks.getAnswer }));

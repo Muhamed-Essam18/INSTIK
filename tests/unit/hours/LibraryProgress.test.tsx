@@ -16,12 +16,16 @@ vi.mock("@/lib/learner/profiles", () => ({ getProfile: mocks.profile }));
 vi.mock("@/lib/hours/queries", () => ({ getLibraryProgress: mocks.progress }));
 // A learner with Full access, so these tests keep checking progress only (locked markers have their own tests).
 vi.mock("@/lib/billing/subscription", () => ({
-  getSubscription: async () => ({
-    status: "ACTIVE",
-    plan: "MONTHLY",
-    currentPeriodEnd: new Date(Date.now() + 86_400_000),
-    cancelAtPeriodEnd: false,
-    stripeSubscriptionId: "sub_1",
+  getFullAccess: async () => ({
+    subscription: {
+      status: "ACTIVE",
+      plan: "MONTHLY",
+      currentPeriodEnd: new Date(Date.now() + 86_400_000),
+      cancelAtPeriodEnd: false,
+      stripeSubscriptionId: "sub_1",
+    },
+    manual: false,
+    full: true,
   }),
 }));
 

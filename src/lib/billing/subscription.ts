@@ -19,6 +19,23 @@ async function readSubscription(userId: string): Promise<SubscriptionRow | null>
   });
 }
 
+/** True while an owner has given this account Full access by hand (spec 11). Removing the grant never touches the subscription row. */
+async function readManualAccess(userId: string): Promise<boolean> {
+  const row = await db().user.findUnique({ where: { id: userId }, select: { manualAccessAt: true } });
+  return row?.manualAccessAt != null;
+}
+
+export type FullAccess = { subscription: SubscriptionRow | null; manual: boolean; full: boolean };
+
+/**
+ * The learner's Full access now: their subscription row and any manual grant, decided by the one access rule (`hasFullAccess`).
+ * Cached for the request. Every place that locks or unlocks a video, or says "you have Full access", reads this.
+ */
+export const getFullAccess = cache(async (userId: string): Promise<FullAccess> => {
+  const [subscription, manual] = await Promise.all([getSubscription(userId), readManualAccess(userId)]);
+  return { subscription, manual, full: hasFullAccess(subscription, new Date(), manual) };
+});
+
 /** A fresh read, for code that has just synced and needs the new row (route handlers). */
 export const getFreshSubscription = readSubscription;
 
@@ -39,15 +56,15 @@ export type VideoAccess = { ok: true } | { ok: false; reason: "locked" };
 export async function requireVideoAccess(learnerId: string, video: { access: string }): Promise<VideoAccess> {
   if (video.access === "free") return { ok: true };
   const now = new Date();
-  const row = await getSubscription(learnerId);
-  if (canWatch(video, row, now)) return { ok: true };
+  const [row, manual] = await Promise.all([getSubscription(learnerId), readManualAccess(learnerId)]);
+  if (canWatch(video, row, now, manual)) return { ok: true };
 
   const liveStatus = row && (row.status === "ACTIVE" || row.status === "TRIALING" || row.status === "PAST_DUE");
   if (row && liveStatus && isStale(row, now) && env().STRIPE_SECRET_KEY) {
     try {
       await syncNow(row.stripeSubscriptionId);
       const fresh = await readSubscription(learnerId);
-      if (canWatch(video, fresh, new Date())) return { ok: true };
+      if (canWatch(video, fresh, new Date(), manual)) return { ok: true };
     } catch {
       // Stripe could not be reached: stay locked rather than guess.
     }

@@ -25,8 +25,12 @@ export function isStale(subscription: SubscriptionFacts, now: Date): boolean {
   return now.getTime() - subscription.currentPeriodEnd.getTime() > STALE_AFTER_DAYS * DAY_MS;
 }
 
-/** True when this subscription gives Full access at `now`. A missing subscription gives none. */
-export function hasFullAccess(subscription: SubscriptionFacts | null | undefined, now: Date): boolean {
+/**
+ * True when this learner has Full access at `now`: an owner has given it by hand (`manual`, spec 11), or the subscription gives it.
+ * A missing subscription gives none. This is the one access rule: the learner site, settings and counted views all use it.
+ */
+export function hasFullAccess(subscription: SubscriptionFacts | null | undefined, now: Date, manual = false): boolean {
+  if (manual) return true;
   if (!subscription) return false;
   switch (subscription.status) {
     case "ACTIVE": // includes cancelAtPeriodEnd: Stripe keeps it active until the paid period is over
@@ -43,8 +47,9 @@ export function canWatch(
   video: { access: string },
   subscription: SubscriptionFacts | null | undefined,
   now: Date,
+  manual = false,
 ): boolean {
-  return video.access === "free" || hasFullAccess(subscription, now);
+  return video.access === "free" || hasFullAccess(subscription, now, manual);
 }
 
 /** The same videos with `locked` set for this learner: true for each one they cannot watch. Order and content are kept. */
@@ -52,6 +57,7 @@ export function markLocked<T extends { access: string }>(
   videos: readonly T[],
   subscription: SubscriptionFacts | null | undefined,
   now: Date,
+  manual = false,
 ): (T & { locked: boolean })[] {
-  return videos.map((video) => ({ ...video, locked: !canWatch(video, subscription, now) }));
+  return videos.map((video) => ({ ...video, locked: !canWatch(video, subscription, now, manual) }));
 }

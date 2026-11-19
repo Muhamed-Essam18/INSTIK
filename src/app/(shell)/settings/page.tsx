@@ -8,7 +8,7 @@ import { PageFallback } from "@/components/screens/PageFallback";
 import { ProfileList } from "@/components/settings/ProfileList";
 import { hasFullAccess } from "@/lib/billing/access";
 import { billingEnabled } from "@/lib/billing/enabled";
-import { getSubscription } from "@/lib/billing/subscription";
+import { getFullAccess } from "@/lib/billing/subscription";
 import { getTimeZone, listProfiles } from "@/lib/learner/profiles";
 import { addLanguagePath, settingsPath } from "@/lib/routes";
 import { requireLearner } from "@/lib/session";
@@ -20,15 +20,15 @@ type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 /** Reads the session, so it renders behind a Suspense boundary. */
 async function SettingsContent({ searchParams }: { searchParams: SearchParams }) {
   const learner = await requireLearner(settingsPath());
-  const [profiles, subscription, timeZone, query] = await Promise.all([
+  const [profiles, { subscription, manual, full }, timeZone, query] = await Promise.all([
     listProfiles(learner.id),
-    getSubscription(learner.id),
+    getFullAccess(learner.id),
     getTimeZone(learner.id),
     searchParams,
   ]);
 
   // Back from Checkout and still waiting: once access is on, swap the waiting notice for the welcome.
-  if (query.billing === "pending" && hasFullAccess(subscription, new Date())) redirect(`${settingsPath()}?billing=success`);
+  if (query.billing === "pending" && full) redirect(`${settingsPath()}?billing=success`);
 
   return (
     <div className="mx-auto flex max-w-[720px] flex-col gap-space-8">
@@ -39,7 +39,16 @@ async function SettingsContent({ searchParams }: { searchParams: SearchParams })
         </p>
       </div>
       <BillingNotice />
-      <PlanSection subscription={subscription} timeZone={timeZone} billingOn={billingEnabled()} />
+      {manual && !hasFullAccess(subscription, new Date()) ? (
+        <section aria-label="Your plan" className="flex flex-col gap-space-4 rounded-lg bg-paper p-space-6">
+          <h2 className="m-0 font-display text-heading text-ink">Your plan</h2>
+          <p className="m-0 text-body text-ink">
+            You have <span className="font-semibold">Full access</span>, given by Instik.
+          </p>
+        </section>
+      ) : (
+        <PlanSection subscription={subscription} timeZone={timeZone} billingOn={billingEnabled()} />
+      )}
       <section aria-label="Your languages" className="flex flex-col gap-space-6">
         <ProfileList profiles={profiles} />
         <Link
